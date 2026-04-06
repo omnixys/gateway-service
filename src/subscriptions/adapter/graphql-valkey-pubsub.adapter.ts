@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { ValkeyPubSubService } from './valkey.pubsub.service.js';
+import { ValkeyPubSubService } from '@omnixys/cache';
 import { Injectable } from '@nestjs/common';
 import { PubSubEngine } from 'graphql-subscriptions';
 

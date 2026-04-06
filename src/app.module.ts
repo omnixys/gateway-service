@@ -9,23 +9,34 @@
 import { env } from './config/env.js';
 import { HandlerModule } from './handlers/handler.module.js';
 import { HealthModule } from './health/health.module.js';
-import { KafkaModule } from './kafka/kafka.module.js';
 import { SubscriptionServerModule } from './subscriptions/subscription.module.js';
 import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
 import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ValkeyModule } from '@omnixys/cache';
+import { KafkaModule } from '@omnixys/kafka';
+import { LoggerModule } from '@omnixys/logger';
+import { ObservabilityModule } from '@omnixys/observability';
+
 
 const {
+  SERVICE,
+  KAFKA_BROKER,
+  TEMPO_URI,
+  VALKEY_URL,
+  VALKEY_PASSWORD,
+  
   AUTHENTICATION_URI,
   USER_URI,
-  // EVENT_URI,
-  // INVITATION_URI,
-  // TICKET_URI,
-  // SEAT_URI,
+  EVENT_URI,
+  INVITATION_URI,
+  TICKET_URI,
+  SEAT_URI,
   NOTIFICATION_URI,
-  ADDRESS_URI,
+  // ADDRESS_URI,
+  // LOGSTREAM_URI,
 } = env;
 
 export interface AuthToken {
@@ -205,6 +216,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
     ConfigModule.forRoot({ isGlobal: true }),
     GraphQLModule.forRoot<ApolloGatewayDriverConfig>({
       driver: ApolloGatewayDriver,
+      
       server: {
         // Wichtig: Context baut die Infos, die in willSendRequest unten landen
         context: handleAuth,
@@ -233,12 +245,13 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
           subgraphs: [
             { name: 'authentication', url: AUTHENTICATION_URI },
             { name: 'user', url: USER_URI },
-            // { name: 'event', url: EVENT_URI },
-            // { name: 'invitation', url: INVITATION_URI },
-            // { name: 'ticket', url: TICKET_URI },
+            { name: 'event', url: EVENT_URI },
+            { name: 'invitation', url: INVITATION_URI },
+            { name: 'ticket', url: TICKET_URI },
             { name: 'notification', url: NOTIFICATION_URI },
-            // { name: 'seat', url: SEAT_URI },
-            { name: 'address', url: ADDRESS_URI },
+            { name: 'seat', url: SEAT_URI },
+            // { name: 'address', url: ADDRESS_URI },
+            // { name: 'logstream', url: LOGSTREAM_URI },
           ],
         }),
 
@@ -280,9 +293,53 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
       },
     }),
     SubscriptionServerModule,
-    KafkaModule,
     HandlerModule,
     HealthModule,
+
+    ValkeyModule.forRoot({
+      serviceName: `${SERVICE}-service`,
+      url: VALKEY_URL,
+      password: VALKEY_PASSWORD,
+
+      pubSub: { enabled: true },
+      streams: { enabled: true },
+    }),
+
+    KafkaModule.forRoot({
+      clientId: SERVICE,
+      brokers: [KAFKA_BROKER],
+      groupId: `${SERVICE}-consumer`,
+      serviceName: SERVICE,
+    }),
+
+    ObservabilityModule.forRoot({
+      serviceName: SERVICE,
+
+      otel: {
+        endpoint: TEMPO_URI,
+        transport: 'http',
+        samplingRatio: 1,
+      },
+
+      metrics: {
+        port: 9464,
+        enabled: true,
+      },
+    }),
+
+    LoggerModule.forRoot({
+      serviceName: SERVICE,
+
+      kafka: {
+        enabled: true,
+        topic: 'logstream.input',
+      },
+      batch: {
+        enabled: true,
+        maxSize: 50,
+        flushInterval: 2000,
+      },
+    }),
   ],
 })
 export class AppModule {}

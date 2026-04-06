@@ -92,6 +92,7 @@ export const env = {
   USER_URI: process.env.USER_URI ?? 'localhost:7402/graphql',
   SEAT_URI: process.env.SEAT_URI ?? 'localhost:7409/graphql',
   ADDRESS_URI: process.env.ADDRESS_URI ?? 'localhost:7004/graphql',
+  LOGSTREAM_URI: process.env.LOGSTREAM_URI ?? 'localhost:7401/graphql',
 } as const;
 
 // /**

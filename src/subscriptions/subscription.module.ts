@@ -1,7 +1,6 @@
 // /backend/gateway/src/subscriptions/subscription.module.ts
 
-import { KafkaModule } from '../kafka/kafka.module.js';
-import { ValkeyModule } from '../valkey/valkey.module.js';
+import { GraphQLValkeyPubSubAdapter } from './adapter/graphql-valkey-pubsub.adapter.js';
 import { UserSignupSubscriptionResolver } from './subscription.resolver.js';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
@@ -9,8 +8,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 
 @Module({
   imports: [
-    ValkeyModule,
-    KafkaModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       path: '/ws',
@@ -28,6 +25,18 @@ import { GraphQLModule } from '@nestjs/graphql';
     }),
   ],
 
-  providers: [UserSignupSubscriptionResolver],
+  providers: [
+    UserSignupSubscriptionResolver,
+    GraphQLValkeyPubSubAdapter,
+    {
+      provide: 'PUBSUB',
+      useExisting: GraphQLValkeyPubSubAdapter,
+    },
+  ],
+
+  exports: [
+    'PUBSUB', // ✅ THIS IS MISSING
+    GraphQLValkeyPubSubAdapter,
+  ],
 })
 export class SubscriptionServerModule {}
