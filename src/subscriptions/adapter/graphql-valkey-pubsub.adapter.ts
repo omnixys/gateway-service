@@ -5,8 +5,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { ValkeyPubSubService } from '@omnixys/cache';
 import { Injectable } from '@nestjs/common';
+import { ValkeyPubSubService } from '@omnixys/cache';
 import { PubSubEngine } from 'graphql-subscriptions';
 
 type Listener = (payload: any) => void;

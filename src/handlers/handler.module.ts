@@ -17,16 +17,12 @@
 
 import { AdminModule } from '../admin/admin.module.js';
 import { SubscriptionServerModule } from '../subscriptions/subscription.module.js';
-import { UserSignedUpKafkaHandler } from './notification.handler.js';
+import { NotificationHandler } from './notification.handler.js';
 import { Module } from '@nestjs/common';
 
 @Module({
   imports: [AdminModule, SubscriptionServerModule],
-  providers: [
-    UserSignedUpKafkaHandler,
-  ],
-  exports: [
-    UserSignedUpKafkaHandler,
-  ],
+  providers: [NotificationHandler],
+  exports: [NotificationHandler],
 })
 export class HandlerModule {}

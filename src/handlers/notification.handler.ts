@@ -1,17 +1,21 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
  * @license GPL-3.0-or-later
  */
 
-import { PubSubEngine } from 'graphql-subscriptions';
+import { UserSignedUpPayload } from '../subscriptions/models/payloads/user-signup.payload.js';
+import {
+  MessageDirection,
+  WhatsAppMessage,
+} from '../subscriptions/models/payloads/whatsapp-message.payload.js';
 import { Inject, Injectable, Optional } from '@nestjs/common';
-
 import {
   IKafkaEventContext,
   KafkaEvent,
   KafkaEventHandler,
   KafkaTopics,
 } from '@omnixys/kafka';
+import { WhatsAppMessageDTO } from '@omnixys/shared';
+import { PubSubEngine } from 'graphql-subscriptions';
 
 /**
  * Kafka → GraphQL Subscription bridge.
@@ -28,7 +32,7 @@ import {
  */
 @KafkaEventHandler('notification')
 @Injectable()
-export class UserSignedUpKafkaHandler {
+export class NotificationHandler {
   constructor(
     @Optional()
     @Inject('PUBSUB')
@@ -42,7 +46,7 @@ export class UserSignedUpKafkaHandler {
    */
   @KafkaEvent(KafkaTopics.gateway.sendCredentials)
   async handleSendCredentials(
-    event: any,
+    payload: UserSignedUpPayload,
     _context: IKafkaEventContext,
   ): Promise<void> {
     /**
@@ -57,7 +61,7 @@ export class UserSignedUpKafkaHandler {
      * Log with structured payload for traceability.
      */
     console.debug('Publishing USER_SIGNED_UP event', {
-      userId: event.userId,
+      payload,
     });
 
     /**
@@ -67,12 +71,51 @@ export class UserSignedUpKafkaHandler {
      * Keep payload flat and client-friendly.
      */
     await this.pubsub.publish('USER_SIGNED_UP', {
-      userId: event.serId,
-      username: event.username,
-      password: event.password,
-      invitationId: event.invitationId,
-      lastName: event.lastName,
-      firstName: event.firstName,
+      userId: payload.userId,
+      username: payload.username,
+      password: payload.password,
+      invitationId: payload.invitationId,
+      lastName: payload.lastName,
+      firstName: payload.firstName,
+    });
+  }
+
+  @KafkaEvent(KafkaTopics.gateway.createWhatsappMessage)
+  async handleMessageCreated(
+    payload: WhatsAppMessageDTO,
+    _context: IKafkaEventContext,
+  ): Promise<void> {
+    /**
+     * Defensive check:
+     * In distributed systems PubSub might be disabled.
+     */
+    if (!this.pubsub) {
+      return;
+    }
+
+    console.debug(
+      'Publishing whatsapp.message event message=',
+      payload.value.body,
+    );
+
+    const whatsappMessage: WhatsAppMessage = {
+      id: payload.value.id,
+      chatId: payload.value.chatId,
+      direction: payload.value.direction as MessageDirection,
+      from: payload.value.from,
+      to: payload.value.to,
+      body: payload.value.body ?? undefined,
+      createdAt: payload.value.createdAt.toDateString(),
+    };
+
+    /**
+     * Publish to GraphQL subscription layer.
+     *
+     * Important:
+     * Keep payload flat and client-friendly.
+     */
+    await this.pubsub.publish(`whatsapp.message.${whatsappMessage.chatId}`, {
+      whatsappMessage,
     });
   }
 }

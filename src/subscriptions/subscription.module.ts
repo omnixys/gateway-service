@@ -34,9 +34,6 @@ import { GraphQLModule } from '@nestjs/graphql';
     },
   ],
 
-  exports: [
-    'PUBSUB', // ✅ THIS IS MISSING
-    GraphQLValkeyPubSubAdapter,
-  ],
+  exports: ['PUBSUB', GraphQLValkeyPubSubAdapter],
 })
 export class SubscriptionServerModule {}

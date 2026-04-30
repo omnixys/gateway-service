@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // /Users/gentlebookpro/Projekte/checkpoint/backend/gateway/src/app.module.ts
+import { BannerService } from './banner.service.js';
 import { env } from './config/env.js';
 import { HandlerModule } from './handlers/handler.module.js';
 import { HealthModule } from './health/health.module.js';
@@ -20,14 +21,13 @@ import { KafkaModule } from '@omnixys/kafka';
 import { LoggerModule } from '@omnixys/logger';
 import { ObservabilityModule } from '@omnixys/observability';
 
-
 const {
   SERVICE,
   KAFKA_BROKER,
   TEMPO_URI,
   VALKEY_URL,
   VALKEY_PASSWORD,
-  
+
   AUTHENTICATION_URI,
   USER_URI,
   EVENT_URI,
@@ -35,8 +35,8 @@ const {
   TICKET_URI,
   SEAT_URI,
   NOTIFICATION_URI,
-  // ADDRESS_URI,
-  // LOGSTREAM_URI,
+  ADDRESS_URI,
+  LOGSTREAM_URI,
 } = env;
 
 export interface AuthToken {
@@ -216,7 +216,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
     ConfigModule.forRoot({ isGlobal: true }),
     GraphQLModule.forRoot<ApolloGatewayDriverConfig>({
       driver: ApolloGatewayDriver,
-      
+
       server: {
         // Wichtig: Context baut die Infos, die in willSendRequest unten landen
         context: handleAuth,
@@ -250,8 +250,8 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
             { name: 'ticket', url: TICKET_URI },
             { name: 'notification', url: NOTIFICATION_URI },
             { name: 'seat', url: SEAT_URI },
-            // { name: 'address', url: ADDRESS_URI },
-            // { name: 'logstream', url: LOGSTREAM_URI },
+            { name: 'address', url: ADDRESS_URI },
+            { name: 'logstream', url: LOGSTREAM_URI },
           ],
         }),
 
@@ -341,5 +341,6 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
       },
     }),
   ],
+  providers: [BannerService],
 })
 export class AppModule {}
