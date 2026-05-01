@@ -309,11 +309,12 @@ zookeeper-data/
 .extras/*.{png,jpeg,gif,mp4,mpeg,mkv,avi,ogg,webm}
 
 
-__tests__/e2e
-__tests__/reports
-__tests__/utils
-__tests__/env.ts
-__tests__/tsconfig.test.json
-
+.extras/json
+.extras/data
+.extras/sql
 .npmrc
 .secrets
+__tests__
+log
+TODO.md
+node_profiles

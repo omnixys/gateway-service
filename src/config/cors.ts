@@ -61,6 +61,7 @@ export const corsOptions: FastifyCorsOptions = {
     'https://nexys.omnixys.com',
     'http://localhost:3000',
     'https://studio.apollographql.com',
+    'https://checkpoint.omnixys.com',
   ],
 
   // ======================================================
