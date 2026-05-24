@@ -20,7 +20,7 @@
   "private": false,
   "engines": {
     "node": ">=24.10.0",
-    "pnpm": ">=10.19.0"
+    "pnpm": ">=11.1.2"
   },
   "scripts": {
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",

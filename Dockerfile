@@ -27,7 +27,7 @@ ARG NODE_VERSION=25.8.2
 # ---------------------------------------------------------------------------------------
 FROM node:${NODE_VERSION}-bookworm-slim AS base
 WORKDIR /home/node
-RUN npm install -g pnpm@10.33.0
+RUN npm install -g pnpm@11.1.2
 
 # ---------------------------------------------------------------------------------------
 # Stage 1: Build (dist)
@@ -41,7 +41,7 @@ RUN --mount=type=secret,id=omnixys_token \
     TOKEN=$(cat /run/secrets/omnixys_token) && \
     echo "@omnixys:registry=https://npm.pkg.github.com" > .npmrc && \
     echo "//npm.pkg.github.com/:_authToken=${TOKEN}" >> .npmrc && \
-    pnpm install --frozen-lockfile --ignore-scripts
+    pnpm install --prod --frozen-lockfile --ignore-scripts
 
 COPY --chown=node:node . .
 RUN pnpm run build
@@ -59,7 +59,7 @@ RUN --mount=type=secret,id=omnixys_token \
     TOKEN=$(cat /run/secrets/omnixys_token) && \
     echo "@omnixys:registry=https://npm.pkg.github.com" > .npmrc && \
     echo "//npm.pkg.github.com/:_authToken=${TOKEN}" >> .npmrc && \
-    pnpm install --frozen-lockfile --ignore-scripts
+    pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # ---------------------------------------------------------------------------------------
 # Stage 3: Final runtime image
@@ -106,7 +106,7 @@ RUN apt-get update && \
     mkdir -p /opt/app/log && chown -R node:node /opt/app
 
 # ----- Enable pnpm (runtime) -----
-RUN npm install -g pnpm@10.33.0
+RUN npm install -g pnpm@11.1.2
 
 # ----- Switch to non-root user -----
 USER node
