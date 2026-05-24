@@ -3,6 +3,16 @@
 All notable changes in this project will be documented in this file.
 
 
+## [1.0.2](https://github.com/omnixys/gateway-service/compare/v1.0.1...v1.0.2) (2026-05-24)
+
+### Husky
+
+* **Husky:** add husky ([](https://github.com/omnixys/gateway-service/commit/572244cce6703de7ad4c7e801d28b8dcfab2372b))
+
+### Other
+
+* **Other:** Merge branch 'main' of https://github.com/omnixys/gateway-service ([](https://github.com/omnixys/gateway-service/commit/52aa0d4586e94a3ff733b033514da2dcb7e777cc))
+
 ## [1.0.1](https://github.com/omnixys/gateway-service/compare/v1.0.0...v1.0.1) (2026-05-24)
 
 ### Docker
