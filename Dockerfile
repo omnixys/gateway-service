@@ -41,7 +41,7 @@ RUN --mount=type=secret,id=omnixys_token \
     TOKEN=$(cat /run/secrets/omnixys_token) && \
     echo "@omnixys:registry=https://npm.pkg.github.com" > .npmrc && \
     echo "//npm.pkg.github.com/:_authToken=${TOKEN}" >> .npmrc && \
-    pnpm install --prod --frozen-lockfile --ignore-scripts
+    pnpm install --frozen-lockfile
 
 COPY --chown=node:node . .
 RUN pnpm run build
@@ -59,7 +59,7 @@ RUN --mount=type=secret,id=omnixys_token \
     TOKEN=$(cat /run/secrets/omnixys_token) && \
     echo "@omnixys:registry=https://npm.pkg.github.com" > .npmrc && \
     echo "//npm.pkg.github.com/:_authToken=${TOKEN}" >> .npmrc && \
-    pnpm install --prod --frozen-lockfile --ignore-scripts
+    pnpm install --frozen-lockfile --ignore-scripts
 
 # ---------------------------------------------------------------------------------------
 # Stage 3: Final runtime image
