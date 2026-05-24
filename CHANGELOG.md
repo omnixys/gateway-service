@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [1.0.1](https://github.com/omnixys/gateway-service/compare/v1.0.0...v1.0.1) (2026-05-24)
+
+### Docker
+
+* **Docker:** update pnpm version ([](https://github.com/omnixys/gateway-service/commit/6a1bba4869a878a7be1eef1ce257e11195f2d1fb))
+
 ## 1.0.0 (2026-05-01)
 
 ### 1.0.0
