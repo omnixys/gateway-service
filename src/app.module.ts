@@ -36,7 +36,7 @@ const {
   SEAT_URI,
   NOTIFICATION_URI,
   ADDRESS_URI,
-  LOGSTREAM_URI,
+  // LOGSTREAM_URI,
 } = env;
 
 export interface AuthToken {
@@ -251,7 +251,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
             { name: 'notification', url: NOTIFICATION_URI },
             { name: 'seat', url: SEAT_URI },
             { name: 'address', url: ADDRESS_URI },
-            { name: 'logstream', url: LOGSTREAM_URI },
+            // { name: 'logstream', url: LOGSTREAM_URI },
           ],
         }),
 
