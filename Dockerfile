@@ -41,9 +41,10 @@ RUN --mount=type=secret,id=omnixys_token \
     TOKEN=$(cat /run/secrets/omnixys_token) && \
     echo "@omnixys:registry=https://npm.pkg.github.com" > .npmrc && \
     echo "//npm.pkg.github.com/:_authToken=${TOKEN}" >> .npmrc && \
-    pnpm install --frozen-lockfile
+    pnpm install --frozen-lockfile --ignore-scripts
 
 COPY --chown=node:node . .
+ENV CI=true
 RUN pnpm run build
 
 # ---------------------------------------------------------------------------------------
@@ -101,7 +102,7 @@ ENV NODE_ENV=production TZ=UTC
 # dumb-init: lightweight init system for proper signal handling.
 # wget + ca-certificates: used for health checks and secure HTTPS.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends dumb-init wget ca-certificates && \
+    apt-get install -y --no-install-recommends dumb-init wget chromium ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* && \
     mkdir -p /opt/app/log && chown -R node:node /opt/app
 
