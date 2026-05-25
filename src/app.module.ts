@@ -36,7 +36,7 @@ const {
   SEAT_URI,
   NOTIFICATION_URI,
   ADDRESS_URI,
-  // LOGSTREAM_URI,
+  // LOGSTREAM_URI, 
 } = env;
 
 export interface AuthToken {
