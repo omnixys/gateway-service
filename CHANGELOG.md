@@ -3,6 +3,33 @@
 All notable changes in this project will be documented in this file.
 
 
+## [1.0.3](https://github.com/omnixys/gateway-service/compare/v1.0.2...v1.0.3) (2026-06-20)
+
+### Docker
+
+* **Docker:** build ([](https://github.com/omnixys/gateway-service/commit/c10b2914e41cd025edf7fe62fd4b21518bf52938))
+* **Docker:** Dockerfile ([](https://github.com/omnixys/gateway-service/commit/4a4bc973318db522f188fb9782f1a3c33828fa79))
+
+### Gateway
+
+* **Gateway:** remove logstream service ([](https://github.com/omnixys/gateway-service/commit/de8251b3be1b76c9b7a2e836954c556d957c7ccb))
+
+### Other
+
+* **Other:** Merge branch 'main' of https://github.com/omnixys/gateway-service ([](https://github.com/omnixys/gateway-service/commit/b19eb820b662f08e6f6d28f6b36b423680b5a2b7))
+
+### Pk
+
+* **Pk:** küp ([](https://github.com/omnixys/gateway-service/commit/e259fcd8ff5215a4cc8407ed4d0200776b24e212))
+
+### Release
+
+* **Release:** update ([](https://github.com/omnixys/gateway-service/commit/1fd0dbacd0eb54ab744b3d555d1ee9aa8a4ca31a))
+
+### Service
+
+* **Service:** add logstream-service ([](https://github.com/omnixys/gateway-service/commit/ed61891f1d0697614cccdd0ddb78e119e3a58491))
+
 ## [1.0.2](https://github.com/omnixys/gateway-service/compare/v1.0.1...v1.0.2) (2026-05-24)
 
 ### Husky
