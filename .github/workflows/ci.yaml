@@ -192,7 +192,7 @@ jobs:
 
   push-docker:
     needs: release
-    # if: needs.release.outputs.released == 'true'
+    if: needs.release.outputs.released == 'true'
     name: 🐳 Build & Push Multi-Arch Images (Docker)
     runs-on: ubuntu-latest
     strategy:
@@ -282,7 +282,7 @@ jobs:
 
   push-github:
     needs: release
-    # if: needs.release.outputs.released == 'true'
+    if: needs.release.outputs.released == 'true'
     name: 🐳 Build & Push Multi-Arch Images (Github)
     runs-on: ubuntu-latest
     strategy:
