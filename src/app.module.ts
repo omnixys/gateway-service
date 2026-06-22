@@ -17,9 +17,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ValkeyModule } from '@omnixys/cache';
+import { ContextAccessor, ContextModule } from '@omnixys/context';
 import { KafkaModule } from '@omnixys/kafka';
-import { LoggerModule } from '@omnixys/logger';
+import { getLogger, LoggerModule } from '@omnixys/logger';
 import { ObservabilityModule } from '@omnixys/observability';
+import { SecurityModule } from '@omnixys/security';
 
 const {
   SERVICE,
@@ -27,6 +29,8 @@ const {
   TEMPO_URI,
   VALKEY_URL,
   VALKEY_PASSWORD,
+  KC_URL,
+  KC_REALM,
 
   AUTHENTICATION_URI,
   USER_URI,
@@ -35,9 +39,11 @@ const {
   TICKET_URI,
   SEAT_URI,
   NOTIFICATION_URI,
-  ADDRESS_URI,
-  LOGSTREAM_URI, 
+  // ADDRESS_URI,
+  // LOGSTREAM_URI,
 } = env;
+
+const federationLogger = getLogger('GatewayFederation');
 
 export interface AuthToken {
   accessToken: string;
@@ -76,9 +82,18 @@ function getCookieValue(name: string, cookieHeader: string | null): string | nul
  * - isIntrospection: Flag für __schema/__type
  * - meta: optionale Forward-Infos (IP, UA), falls Subgraphs logs/ratelimiting brauchen
  */
-const handleAuth = (ctx: any) => {
-  // Fastify compatible
-  const req = ctx?.request ?? ctx?.req ?? ctx?.raw ?? null;
+export interface GatewayRequestContext {
+  token: string | null;
+  cookieHeader: string | null;
+  isIntrospection: boolean;
+  requestId?: string;
+  correlationId?: string;
+  traceparent?: string;
+  meta: { ip?: string; ua?: string; host?: string; origin?: string };
+}
+
+export const handleAuth = (input: any): GatewayRequestContext => {
+  const req = input?.request ?? input?.req ?? (input?.headers ? input : null);
 
   // Federation / Internal Apollo queries have no request object
   if (!req) {
@@ -111,18 +126,90 @@ const handleAuth = (ctx: any) => {
       query.includes('_service') ||
       query.includes('__Apollo'));
 
+  const current = ContextAccessor.get();
   const meta = {
-    ip: headers['x-forwarded-for'] ?? req.ip ?? '',
+    ip: current?.client?.ip ?? req.ip ?? '',
     ua: headers['user-agent'] ?? '',
     host: headers['host'] ?? '',
     origin: headers['origin'] ?? '',
   };
+  const requestId = current?.requestId ?? headerValue(headers['x-request-id']) ?? undefined;
+  const correlationId =
+    current?.correlationId ?? headerValue(headers['x-correlation-id']) ?? requestId;
+  const traceparent =
+    createTraceparent(current?.trace?.traceId, current?.trace?.spanId) ??
+    headerValue(headers.traceparent) ??
+    undefined;
 
-  return { token: bearerToken, cookieHeader, isIntrospection, meta };
+  return {
+    token: bearerToken,
+    cookieHeader,
+    isIntrospection,
+    requestId,
+    correlationId,
+    traceparent,
+    meta,
+  };
 };
 
+function headerValue(value: unknown): string | null {
+  if (Array.isArray(value)) {
+    return typeof value[0] === 'string' ? value[0] : null;
+  }
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function createTraceparent(traceId?: string, spanId?: string): string | null {
+  return /^[a-f0-9]{32}$/i.test(traceId ?? '') && /^[a-f0-9]{16}$/i.test(spanId ?? '')
+    ? `00-${traceId}-${spanId}-01`
+    : null;
+}
+
+interface HeaderSink {
+  set(name: string, value: string): unknown;
+}
+
+export function applyGatewayHeaders(
+  headers: HeaderSink | undefined,
+  context: GatewayRequestContext,
+): void {
+  if (!headers) {
+    return;
+  }
+  if (context.isIntrospection) {
+    headers.set('x-introspection', 'true');
+  }
+  if (context.token) {
+    headers.set('authorization', context.token);
+  }
+  if (context.cookieHeader) {
+    headers.set('cookie', context.cookieHeader);
+  }
+  if (context.requestId) {
+    headers.set('x-request-id', context.requestId);
+  }
+  if (context.correlationId) {
+    headers.set('x-correlation-id', context.correlationId);
+  }
+  if (context.traceparent) {
+    headers.set('traceparent', context.traceparent);
+  }
+  if (context.meta.ip) {
+    headers.set('x-forwarded-for', context.meta.ip);
+  }
+  if (context.meta.ua) {
+    headers.set('x-forwarded-user-agent', context.meta.ua);
+  }
+  if (context.meta.host) {
+    headers.set('x-forwarded-host', context.meta.host);
+  }
+  if (context.meta.origin) {
+    headers.set('origin', context.meta.origin);
+  }
+}
+
 // Hilfsfunktion: Cookies setzen (auf Gateway-Origin)
-function appendCookieHeaders(ctx: any) {
+export function appendCookieHeaders(ctx: any) {
   const res = ctx?.response;
   const http = res?.http;
 
@@ -144,7 +231,10 @@ function appendCookieHeaders(ctx: any) {
 
   // Debug-Log bei Fehlern
   if (errors && errors.length > 0) {
-    console.error('GraphQL Errors:', errors);
+    federationLogger.warn(
+      { errorCount: errors.length },
+      'Federated GraphQL response contains errors',
+    );
   }
 
   // --- Logout ---
@@ -166,9 +256,9 @@ function appendCookieHeaders(ctx: any) {
     data?.credentialsLogin ??
     data?.refresh ??
     data?.authenticate ??
-    data.loginTotp ??
-    data.verifyWebAuthnAuthentication ??
-    data.verifyMagicLink ??
+    data?.loginTotp ??
+    data?.verifyWebAuthnAuthentication ??
+    data?.verifyMagicLink ??
     data?.verifySignUp?.token;
   if (!authPayload) {
     return;
@@ -213,13 +303,22 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
 
 @Module({
   imports: [
+    ContextModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
+    SecurityModule.forRoot({
+      jwt: {
+        issuer: `${KC_URL}/realms/${KC_REALM}`,
+        jwksUri: `${KC_URL}/realms/${KC_REALM}/protocol/openid-connect/certs`,
+      },
+      globalGuards: false,
+      rateLimit: { enabled: false },
+    }),
     GraphQLModule.forRoot<ApolloGatewayDriverConfig>({
       driver: ApolloGatewayDriver,
 
       server: {
         // Wichtig: Context baut die Infos, die in willSendRequest unten landen
-        context: handleAuth,
+        context: (request: any) => handleAuth(request),
         // Plugin: fange Auth-Antworten ab und setze Cookies auf Gateway-Origin
         plugins: [
           {
@@ -230,7 +329,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
                     appendCookieHeaders(ctx as any);
                   } catch (e) {
                     // Optional: Logging, aber aufpassen, dass das Response nicht bricht
-                    console.error('cookie set error', e);
+                    federationLogger.error({ error: e }, 'Gateway cookie compatibility failed');
                   }
                 },
               };
@@ -250,8 +349,8 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
             { name: 'ticket', url: TICKET_URI },
             { name: 'notification', url: NOTIFICATION_URI },
             { name: 'seat', url: SEAT_URI },
-            { name: 'address', url: ADDRESS_URI },
-            { name: 'logstream', url: LOGSTREAM_URI },
+            // { name: 'address', url: ADDRESS_URI },
+            // { name: 'logstream', url: LOGSTREAM_URI },
           ],
         }),
 
@@ -259,35 +358,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
         buildService: ({ url }) =>
           new (class extends RemoteGraphQLDataSource {
             override async willSendRequest({ request, context }: any) {
-              // 3) Introspection Marker (nur falls du auf Subgraph-Seite unterscheiden möchtest)
-              if (context?.isIntrospection) {
-                request.http?.headers.set('x-introspection', 'true');
-                return;
-              }
-
-              // 1) Authorization (so wie vom Client gesendet)
-              if (context?.token) {
-                // Erwartet wird normal "Bearer <token>"
-                request.http?.headers.set('authorization', String(context.token));
-              }
-
-              // 2) Cookies 1:1 weiterleiten (falls Subgraph Cookie-basierte Session/JWT prüft)
-              if (context?.cookieHeader) {
-                request.http?.headers.set('cookie', String(context.cookieHeader));
-              }
-              // 4) Nützliche Meta-Header (optional für Logging / Rate-Limiting downstream)
-              if (context?.meta?.ip) {
-                request.http?.headers.set('x-forwarded-for', String(context.meta.ip));
-              }
-              if (context?.meta?.ua) {
-                request.http?.headers.set('x-forwarded-user-agent', String(context.meta.ua));
-              }
-              if (context?.meta?.host) {
-                request.http?.headers.set('x-forwarded-host', String(context.meta.host));
-              }
-              if (context?.meta?.origin) {
-                request.http?.headers.set('origin', String(context.meta.origin));
-              }
+              applyGatewayHeaders(request.http?.headers, context as GatewayRequestContext);
             }
           })({ url }),
       },
@@ -329,6 +400,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
 
     LoggerModule.forRoot({
       serviceName: SERVICE,
+      registerGlobalInterceptor: true,
 
       kafka: {
         enabled: true,

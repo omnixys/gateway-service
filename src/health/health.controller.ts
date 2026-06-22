@@ -23,7 +23,10 @@ import {
   HttpHealthIndicator,
   HealthCheck,
   HealthCheckResult,
+  type HealthIndicatorFunction,
+  type HealthIndicatorResult,
 } from '@nestjs/terminus';
+import { ValkeyService } from '@omnixys/cache';
 
 const { KEYCLOAK_HEALTH_URL, TEMPO_HEALTH_URL, PROMETHEUS_HEALTH_URL } = env;
 @Controller('health')
@@ -31,11 +34,18 @@ export class HealthController {
   readonly #health: HealthCheckService;
   readonly #http: HttpHealthIndicator;
   readonly #kafka: KafkaIndicator;
+  readonly #cache: ValkeyService;
 
-  constructor(health: HealthCheckService, http: HttpHealthIndicator, kafka: KafkaIndicator) {
+  constructor(
+    health: HealthCheckService,
+    http: HttpHealthIndicator,
+    kafka: KafkaIndicator,
+    cache: ValkeyService,
+  ) {
     this.#health = health;
     this.#http = http;
     this.#kafka = kafka;
+    this.#cache = cache;
   }
 
   @Get('liveness')
@@ -47,12 +57,33 @@ export class HealthController {
   @Get('readiness')
   @HealthCheck()
   readiness(): Promise<HealthCheckResult> {
-    return this.#health.check([
+    const checks: HealthIndicatorFunction[] = [
       () => Promise.resolve({ app: { status: 'up' } }),
       () => this.#kafka.isHealthy(),
-      () => this.#http.pingCheck('keycloak', KEYCLOAK_HEALTH_URL),
-      () => this.#http.pingCheck('tempo', TEMPO_HEALTH_URL),
-      () => this.#http.pingCheck('prometheus', PROMETHEUS_HEALTH_URL),
-    ]);
+      () => this.cacheHealth(),
+    ];
+    if (KEYCLOAK_HEALTH_URL) {
+      checks.push(() => this.#http.pingCheck('keycloak', KEYCLOAK_HEALTH_URL));
+    }
+    if (TEMPO_HEALTH_URL) {
+      checks.push(() => this.#http.pingCheck('tempo', TEMPO_HEALTH_URL));
+    }
+    if (PROMETHEUS_HEALTH_URL) {
+      checks.push(() => this.#http.pingCheck('prometheus', PROMETHEUS_HEALTH_URL));
+    }
+    return this.#health.check(checks);
+  }
+
+  private async cacheHealth(): Promise<HealthIndicatorResult> {
+    const health = await this.#cache.health();
+    return {
+      cache: {
+        status: health.healthy ? 'up' : 'down',
+        healthy: health.healthy,
+        latencyMs: health.latencyMs,
+        connectionStatus: health.status,
+        error: health.error,
+      },
+    };
   }
 }

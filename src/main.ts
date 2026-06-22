@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /**
  * @license GPL-3.0-or-later
  * Copyright (C) 2025 Caleb Gyamfi - Omnixys Technologies
@@ -18,18 +17,19 @@
 
 import { AppModule } from './app.module.js';
 import { corsOptions } from './config/cors.js';
+import { env } from './config/env.js';
 import compress from '@fastify/compress';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
-// import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { OmnixysLogger } from '@omnixys/logger';
 import { registerFastifyTracing } from '@omnixys/observability';
 import 'reflect-metadata';
 
@@ -73,7 +73,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
-      logger: true,
+      logger: false,
       /**
        * Optionaler JSON-Serializer für große numerische Werte.
        * Wandelt BigInt → Number um, um JSON-Parsing-Fehler zu vermeiden.
@@ -87,6 +87,7 @@ async function bootstrap(): Promise<void> {
 
   const fastify = app.getHttpAdapter().getInstance();
   registerFastifyTracing(fastify);
+  const logger = app.get(OmnixysLogger).log('Bootstrap');
 
   // const loggerService = app.get(LoggerPlusService);
   // logger = loggerService.getLogger('Bootstrap');
@@ -147,11 +148,8 @@ async function bootstrap(): Promise<void> {
    *
    * Liest Werte aus `.env` oder Umgebungsvariablen.
    */
-  const config = app.get(ConfigService);
-
   await app.register(cookie, {
-    // secret: config.get('COOKIE_SECRET') ?? 'omnixys-default-secret',
-    secret: process.env.COOKIE_SECRET ?? 'omnixys-default-secret',
+    secret: env.COOKIE_SECRET,
   });
 
   // const multipart = (await import('@fastify/multipart')).default;
@@ -164,8 +162,8 @@ async function bootstrap(): Promise<void> {
   // });
 
   /** Port-Definition (Standard: 4000) */
-  const port = Number(config.get('PORT') ?? 4000);
-  const service = config.get('SERVICE') ?? 'N/A';
+  const port = env.PORT;
+  const service = env.SERVICE;
 
   // ======================================================
   // 🧩 VALIDATION
@@ -178,14 +176,14 @@ async function bootstrap(): Promise<void> {
    * - `whitelist: true`: entfernt unbekannte Felder
    * - `forbidNonWhitelisted: true`: blockiert ungültige Felder
    */
-  // app.useGlobalPipes(
-  //   new ValidationPipe({
-  //     transform: true,
-  //     whitelist: true,
-  //     forbidNonWhitelisted: false,
-  //     transformOptions: { enableImplicitConversion: true },
-  //   }),
-  // );
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
 
   // ======================================================
   // 🧹 LIFECYCLE & STARTUP
@@ -208,7 +206,7 @@ async function bootstrap(): Promise<void> {
    */
   await app.listen(port, '0.0.0.0');
 
-  console.debug(`✅ ${service}-Service läuft auf Port: ${port}`);
+  logger.info('Service started', { service, port });
 }
 
 // ======================================================

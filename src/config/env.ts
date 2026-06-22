@@ -18,6 +18,14 @@
 import 'dotenv/config';
 import process from 'node:process';
 
+function secret(key: string, fallback: string): string {
+  const value = process.env[key];
+  if (!value && process.env.NODE_ENV === 'production') {
+    throw new Error(`[ENV] Missing required env: ${key}`);
+  }
+  return value ?? fallback;
+}
+
 /**
  * Environment variable configuration for the Node-based server.
  *
@@ -58,6 +66,7 @@ export const env = {
 
   /** Port on which the Node/NestJS server runs */
   PORT: Number(process.env.PORT ?? 4000),
+  COOKIE_SECRET: secret('COOKIE_SECRET', 'omnixys-development-secret'),
 
   /** Keycloak / OAuth client configuration */
   KC_CLIENT_SECRET: process.env.KC_CLIENT_SECRET ?? '',
@@ -76,23 +85,22 @@ export const env = {
   TEMPO_HEALTH_URL: process.env.TEMPO_HEALTH_URL ?? '',
   PROMETHEUS_HEALTH_URL: process.env.PROMETHEUS_HEALTH_URL ?? '',
 
-  COOKIE_SECRET: process.env.COOKIE_SECRET ?? 'omnixys-default-secret',
-
   PC_JWE_KEY: process.env.PC_JWE_KEY ?? '',
   PC_TTL_SEC: Number(process.env.PC_TTL_SEC ?? 60 * 60 * 24 * 30),
   VALKEY_URL: process.env.VALKEY_URL ?? 'valkey://localhost:6380',
-  VALKEY_PASSWORD: process.env.VALKEY_PASSWORD ?? 'DeinStarkesPasswort',
+  VALKEY_PASSWORD: secret('VALKEY_PASSWORD', ''),
 
   AUTHENTICATION_URI:
-    process.env.AUTHENTICATION_URI ?? 'localhost:7501/graphql',
-  EVENT_URI: process.env.EVENT_URI ?? 'localhost:7406/graphql',
-  INVITATION_URI: process.env.INVITATION_URI ?? 'localhost:7407/graphql',
-  TICKET_URI: process.env.TICKET_URI ?? 'localhost:7408/graphql',
-  NOTIFICATION_URI: process.env.NOTIFICATION_URI ?? 'localhost:3005/graphql',
-  USER_URI: process.env.USER_URI ?? 'localhost:7402/graphql',
-  SEAT_URI: process.env.SEAT_URI ?? 'localhost:7409/graphql',
-  ADDRESS_URI: process.env.ADDRESS_URI ?? 'localhost:7004/graphql',
-  LOGSTREAM_URI: process.env.LOGSTREAM_URI ?? 'localhost:7401/graphql',
+    process.env.AUTHENTICATION_URI ?? 'http://localhost:7501/graphql',
+  EVENT_URI: process.env.EVENT_URI ?? 'http://localhost:7406/graphql',
+  INVITATION_URI: process.env.INVITATION_URI ?? 'http://localhost:7407/graphql',
+  TICKET_URI: process.env.TICKET_URI ?? 'http://localhost:7408/graphql',
+  NOTIFICATION_URI:
+    process.env.NOTIFICATION_URI ?? 'http://localhost:3005/graphql',
+  USER_URI: process.env.USER_URI ?? 'http://localhost:7402/graphql',
+  SEAT_URI: process.env.SEAT_URI ?? 'http://localhost:7409/graphql',
+  ADDRESS_URI: process.env.ADDRESS_URI ?? 'http://localhost:7004/graphql',
+  LOGSTREAM_URI: process.env.LOGSTREAM_URI ?? 'http://localhost:7401/graphql',
 } as const;
 
 // /**

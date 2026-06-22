@@ -14,6 +14,7 @@ import {
   KafkaEventHandler,
   KafkaTopics,
 } from '@omnixys/kafka';
+import { OmnixysLogger } from '@omnixys/logger';
 import { WhatsAppMessageDTO } from '@omnixys/shared';
 import { PubSubEngine } from 'graphql-subscriptions';
 
@@ -33,11 +34,16 @@ import { PubSubEngine } from 'graphql-subscriptions';
 @KafkaEventHandler('notification')
 @Injectable()
 export class NotificationHandler {
+  private readonly logger;
+
   constructor(
     @Optional()
     @Inject('PUBSUB')
     private readonly pubsub: PubSubEngine,
-  ) {}
+    logger: OmnixysLogger,
+  ) {
+    this.logger = logger.log(this.constructor.name);
+  }
 
   /**
    * =========================
@@ -60,8 +66,9 @@ export class NotificationHandler {
     /**
      * Log with structured payload for traceability.
      */
-    console.debug('Publishing USER_SIGNED_UP event', {
-      payload,
+    this.logger.debug('Publishing user signup subscription event', {
+      userId: payload.userId,
+      invitationId: payload.invitationId,
     });
 
     /**
@@ -73,7 +80,6 @@ export class NotificationHandler {
     await this.pubsub.publish('USER_SIGNED_UP', {
       userId: payload.userId,
       username: payload.username,
-      password: payload.password,
       invitationId: payload.invitationId,
       lastName: payload.lastName,
       firstName: payload.firstName,
@@ -93,10 +99,10 @@ export class NotificationHandler {
       return;
     }
 
-    console.debug(
-      'Publishing whatsapp.message event message=',
-      payload.value.body,
-    );
+    this.logger.debug('Publishing WhatsApp subscription event', {
+      messageId: payload.value.id,
+      chatId: payload.value.chatId,
+    });
 
     const whatsappMessage: WhatsAppMessage = {
       id: payload.value.id,

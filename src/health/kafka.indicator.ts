@@ -15,39 +15,41 @@
  * For more information, visit <https://www.gnu.org/licenses/>.
  */
 
-import { env } from '../config/env.js';
 import { Injectable } from '@nestjs/common';
 import { HealthIndicatorResult } from '@nestjs/terminus';
-import { Kafka } from 'kafkajs';
+import { KafkaLifecycleService } from '@omnixys/kafka';
+import { OmnixysLogger } from '@omnixys/logger';
 
-const { KAFKA_BROKER } = env;
 @Injectable()
 export class KafkaIndicator {
+  private readonly logger;
+
+  constructor(
+    private readonly kafka: KafkaLifecycleService,
+    logger: OmnixysLogger,
+  ) {
+    this.logger = logger.log(this.constructor.name);
+  }
+
   async isHealthy(): Promise<HealthIndicatorResult> {
-    const kafka = new Kafka({
-      brokers: [KAFKA_BROKER],
-      clientId: 'health-check',
-    });
-
-    const admin = kafka.admin();
-
-    try {
-      await admin.connect();
-      await admin.disconnect();
-
+    const health = this.kafka.health();
+    if (health.healthy) {
       return {
         kafka: {
           status: 'up',
-        },
-      };
-    } catch (error) {
-      console.error('Kafka health check failed:', error);
-      return {
-        kafka: {
-          status: 'down',
-          message: 'Kafka not reachable',
+          producer: health.producer.status,
+          consumer: health.consumer.status,
         },
       };
     }
+
+    this.logger.error('Kafka health check failed', { health });
+    return {
+      kafka: {
+        status: 'down',
+        producer: health.producer.status,
+        consumer: health.consumer.status,
+      },
+    };
   }
 }

@@ -8,8 +8,11 @@ export class UserSignedUpPayload {
   @Field()
   username!: string;
 
-  @Field()
-  password!: string;
+  @Field({
+    nullable: true,
+    deprecationReason: 'Credentials are never exposed through subscriptions',
+  })
+  password?: string;
 
   @Field()
   invitationId!: string;
