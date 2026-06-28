@@ -3,6 +3,20 @@
 All notable changes in this project will be documented in this file.
 
 
+## [2.0.0](https://github.com/omnixys/gateway-service/compare/v1.0.3...v2.0.0) (2026-06-28)
+
+### Dependencies
+
+* **Dependencies:** update Dependecies ([](https://github.com/omnixys/gateway-service/commit/07143720e7ee1d5e0c58a3d0839776b845e82b16))
+
+### Gateway
+
+* **Gateway:** propagate canonical edge context ([](https://github.com/omnixys/gateway-service/commit/83d6b931051c49e8d9db489c38464ff4c3459777))
+
+### Other
+
+* **Other:** Merge branch 'main' of https://github.com/omnixys/gateway-service ([](https://github.com/omnixys/gateway-service/commit/bc9796b3133cb9be384df5b9eecb71938200c307))
+
 ## [1.0.3](https://github.com/omnixys/gateway-service/compare/v1.0.2...v1.0.3) (2026-06-20)
 
 ### Docker
