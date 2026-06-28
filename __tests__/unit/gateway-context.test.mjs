@@ -41,6 +41,47 @@ test('gateway derives auth and canonical propagation metadata', () => {
   );
 });
 
+test('applyGatewayHeaders does not crash when context is undefined', () => {
+  const values = new Map();
+  applyGatewayHeaders(
+    { set: (name, value) => values.set(name, value) },
+    undefined,
+  );
+
+  assert.equal(values.size, 0);
+});
+
+test('applyGatewayHeaders does not crash when context is empty (no meta)', () => {
+  const values = new Map();
+  applyGatewayHeaders(
+    { set: (name, value) => values.set(name, value) },
+    {},
+  );
+
+  assert.equal(values.size, 0);
+});
+
+test('applyGatewayHeaders does not crash when context.meta is missing', () => {
+  const values = new Map();
+  applyGatewayHeaders(
+    { set: (name, value) => values.set(name, value) },
+    { isIntrospection: true },
+  );
+
+  assert.equal(values.get('x-introspection'), 'true');
+});
+
+test('applyGatewayHeaders handles partial meta gracefully', () => {
+  const values = new Map();
+  applyGatewayHeaders(
+    { set: (name, value) => values.set(name, value) },
+    { meta: { ua: 'test-agent' } },
+  );
+
+  assert.equal(values.get('x-forwarded-user-agent'), 'test-agent');
+  assert.equal(values.has('x-forwarded-for'), false);
+});
+
 test('gateway forwards canonical headers to every subgraph request', () => {
   const values = new Map();
   applyGatewayHeaders(

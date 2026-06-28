@@ -31,6 +31,7 @@ const {
   VALKEY_PASSWORD,
   KC_URL,
   KC_REALM,
+  INTERNAL_GATEWAY_TOKEN,
 
   AUTHENTICATION_URI,
   USER_URI,
@@ -39,8 +40,8 @@ const {
   TICKET_URI,
   SEAT_URI,
   NOTIFICATION_URI,
-  // ADDRESS_URI,
-  // LOGSTREAM_URI,
+  ADDRESS_URI,
+  LOGSTREAM_URI,
 } = env;
 
 const federationLogger = getLogger('GatewayFederation');
@@ -128,7 +129,7 @@ export const handleAuth = (input: any): GatewayRequestContext => {
 
   const current = ContextAccessor.get();
   const meta = {
-    ip: current?.client?.ip ?? req.ip ?? '',
+    ip: current?.client?.ip ?? req?.ip ?? req?.socket?.remoteAddress,
     ua: headers['user-agent'] ?? '',
     host: headers['host'] ?? '',
     origin: headers['origin'] ?? '',
@@ -171,11 +172,12 @@ interface HeaderSink {
 
 export function applyGatewayHeaders(
   headers: HeaderSink | undefined,
-  context: GatewayRequestContext,
+  context: GatewayRequestContext | undefined,
 ): void {
-  if (!headers) {
+  if (!headers || !context) {
     return;
   }
+  headers.set('x-internal-token', INTERNAL_GATEWAY_TOKEN);
   if (context.isIntrospection) {
     headers.set('x-introspection', 'true');
   }
@@ -194,16 +196,16 @@ export function applyGatewayHeaders(
   if (context.traceparent) {
     headers.set('traceparent', context.traceparent);
   }
-  if (context.meta.ip) {
+  if (context.meta?.ip) {
     headers.set('x-forwarded-for', context.meta.ip);
   }
-  if (context.meta.ua) {
+  if (context.meta?.ua) {
     headers.set('x-forwarded-user-agent', context.meta.ua);
   }
-  if (context.meta.host) {
+  if (context.meta?.host) {
     headers.set('x-forwarded-host', context.meta.host);
   }
-  if (context.meta.origin) {
+  if (context.meta?.origin) {
     headers.set('origin', context.meta.origin);
   }
 }
@@ -349,8 +351,8 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
             { name: 'ticket', url: TICKET_URI },
             { name: 'notification', url: NOTIFICATION_URI },
             { name: 'seat', url: SEAT_URI },
-            // { name: 'address', url: ADDRESS_URI },
-            // { name: 'logstream', url: LOGSTREAM_URI },
+            { name: 'address', url: ADDRESS_URI },
+            { name: 'logstream', url: LOGSTREAM_URI },
           ],
         }),
 

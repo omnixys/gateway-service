@@ -87,6 +87,10 @@ export const env = {
 
   PC_JWE_KEY: process.env.PC_JWE_KEY ?? '',
   PC_TTL_SEC: Number(process.env.PC_TTL_SEC ?? 60 * 60 * 24 * 30),
+  INTERNAL_GATEWAY_TOKEN: secret(
+    'INTERNAL_GATEWAY_TOKEN',
+    'dev-internal-gateway-token',
+  ),
   VALKEY_URL: process.env.VALKEY_URL ?? 'valkey://localhost:6380',
   VALKEY_PASSWORD: secret('VALKEY_PASSWORD', ''),
 

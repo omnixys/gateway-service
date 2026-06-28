@@ -8,6 +8,7 @@ import {
   WhatsAppMessage,
 } from '../subscriptions/models/payloads/whatsapp-message.payload.js';
 import { Inject, Injectable, Optional } from '@nestjs/common';
+import { WhatsAppMessageDTO } from '@omnixys/contracts';
 import {
   IKafkaEventContext,
   KafkaEvent,
@@ -15,7 +16,6 @@ import {
   KafkaTopics,
 } from '@omnixys/kafka';
 import { OmnixysLogger } from '@omnixys/logger';
-import { WhatsAppMessageDTO } from '@omnixys/shared';
 import { PubSubEngine } from 'graphql-subscriptions';
 
 /**

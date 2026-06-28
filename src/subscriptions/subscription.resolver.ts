@@ -3,8 +3,8 @@ import { UserSignedUpPayload } from './models/payloads/user-signup.payload.js';
 import { WhatsAppMessage } from './models/payloads/whatsapp-message.payload.js';
 import { Inject, UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { RealmRoleType } from '@omnixys/contracts';
 import { CookieAuthGuard, RoleGuard, Roles } from '@omnixys/security';
-import { RealmRoleType } from '@omnixys/shared';
 
 interface WhatsAppMessageSubscriptionPayload {
   whatsappMessage: WhatsAppMessage;
