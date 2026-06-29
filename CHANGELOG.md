@@ -3,6 +3,16 @@
 All notable changes in this project will be documented in this file.
 
 
+## [2.0.1](https://github.com/omnixys/gateway-service/compare/v2.0.0...v2.0.1) (2026-06-29)
+
+### Kafka
+
+* **Kafka:** update kafka dependency ([](https://github.com/omnixys/gateway-service/commit/15d8fdfeac97e0862f99501cd59fb2542a4996e7))
+
+### Other
+
+* **Other:** Merge branch 'main' of https://github.com/omnixys/gateway-service ([](https://github.com/omnixys/gateway-service/commit/908c5dd0233023d47eb8636aa73e14994aa7883e))
+
 ## [2.0.0](https://github.com/omnixys/gateway-service/compare/v1.0.3...v2.0.0) (2026-06-28)
 
 ### Dependencies
