@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [2.0.2](https://github.com/omnixys/gateway-service/compare/v2.0.1...v2.0.2) (2026-07-01)
+
+### Cors
+
+* **Cors:** fix cors ([](https://github.com/omnixys/gateway-service/commit/ade9115ffb732ffb99d4b5b186b83d10d0457fa7))
+
 ## [2.0.1](https://github.com/omnixys/gateway-service/compare/v2.0.0...v2.0.1) (2026-06-29)
 
 ### Kafka
