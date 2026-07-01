@@ -114,7 +114,7 @@ export const corsOptions: FastifyCorsOptions = {
     'sec-fetch-mode',
     'sec-fetch-site',
     'sec-fetch-dest',
-
+    'x-correlation-id',
     'x-tenant-id',
     'x-actor-id',
     'x-request-id',
