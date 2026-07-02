@@ -3,6 +3,16 @@
 All notable changes in this project will be documented in this file.
 
 
+## [2.1.0](https://github.com/omnixys/gateway-service/compare/v2.0.2...v2.1.0) (2026-07-02)
+
+### Deps
+
+* **Deps:** update dependencys ([](https://github.com/omnixys/gateway-service/commit/7eeedb0d00025747fb7f2f7a9995ef705e4ffe2b))
+
+### Other
+
+* **Other:** Merge branch 'main' of https://github.com/omnixys/gateway-service ([](https://github.com/omnixys/gateway-service/commit/e85680d8a3d212a49897a0eb4bdd7720bb4d25be))
+
 ## [2.0.2](https://github.com/omnixys/gateway-service/compare/v2.0.1...v2.0.2) (2026-07-01)
 
 ### Cors
