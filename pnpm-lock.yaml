@@ -76,7 +76,7 @@ importers:
         version: 11.1.1(@grpc/grpc-js@1.14.4)(@grpc/proto-loader@0.8.1)(@nestjs/axios@4.0.1(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(axios@1.16.1)(rxjs@7.8.2))(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.27)(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@omnixys/cache':
         specifier: ^2.0.2
-        version: 2.0.2(040fff364ceb62b0a95349f229ddab54)
+        version: 2.0.2(06ee71975e91ea248d50f59c73bf972d)
       '@omnixys/context':
         specifier: ^2.0.0
         version: 2.0.0(@fastify/cookie@11.0.2)(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.27)(@nestjs/graphql@13.4.2(@apollo/subgraph@2.14.2(graphql@16.14.0))(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.27)(class-transformer@0.5.1)(class-validator@0.14.4)(graphql@16.14.0)(reflect-metadata@0.2.2)(ts-morph@27.0.2))(@omnixys/contracts@2.0.0(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)))(fastify@5.8.5)(graphql@16.14.0)(rxjs@7.8.2)
@@ -88,7 +88,7 @@ importers:
         version: 2.0.1(7bd79444b5ce6ead3755c985f5810505)
       '@omnixys/kafka':
         specifier: ^2.1.1
-        version: 2.1.1(a3adbf8ba24e5d158b3a27fea50ae830)
+        version: 2.1.1(552c097a1096c6f2938b841168f230c9)
       '@omnixys/logger':
         specifier: ^2.0.1
         version: 2.0.1(fe0cd5e2ea74cc0a8928a7b757fe6865)
@@ -96,8 +96,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0(782e82c6c806f482191771e30444c1f3)
       '@omnixys/security':
-        specifier: ^2.0.2
-        version: 2.0.2(c97ec8c2b592a5244fdb2fef80c40053)
+        specifier: ^2.1.0
+        version: 2.1.0(c97ec8c2b592a5244fdb2fef80c40053)
       '@prisma/client':
         specifier: ^6.19.3
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
@@ -1667,8 +1667,8 @@ packages:
       '@omnixys/contracts': ^2.0.0
       fastify: 5.8.5
 
-  '@omnixys/security@2.0.2':
-    resolution: {integrity: sha512-2Jl/TzZ/dKtrQHWSuWU75qO5aGgmlLNWyALtJ0w+gxdXTlwjPJk8KAV/A9NF95S4cQ0ryx2hbMRi6V4U0O+knw==, tarball: https://npm.pkg.github.com/download/@omnixys/security/2.0.2/b7d2f038d7d0e315ae07846598dd2c888fc5d424}
+  '@omnixys/security@2.1.0':
+    resolution: {integrity: sha512-ruw2g0+iu8oFZO7lpOqnDHqytb6H/zZ9BLlmuHxW91sqMzpyL8uYBNPx/Mvg5YwSteJv69rdJ+fSklYoluTRiA==, tarball: https://npm.pkg.github.com/download/@omnixys/security/2.1.0/18d4f77fe14660ee20176410f1f2bfdab2d0b82e}
     peerDependencies:
       '@fastify/cookie': ^11.0.0
       '@nestjs/common': ^10 || ^11
@@ -8423,7 +8423,7 @@ snapshots:
     dependencies:
       '@octokit/openapi-types': 27.0.0
 
-  '@omnixys/cache@2.0.2(040fff364ceb62b0a95349f229ddab54)':
+  '@omnixys/cache@2.0.2(06ee71975e91ea248d50f59c73bf972d)':
     dependencies:
       '@nestjs/common': 11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.27(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.27)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -8431,7 +8431,7 @@ snapshots:
       '@omnixys/contracts': 2.0.0(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))
       '@omnixys/logger': 2.0.1(fe0cd5e2ea74cc0a8928a7b757fe6865)
       '@omnixys/observability': 2.0.0(782e82c6c806f482191771e30444c1f3)
-      '@omnixys/security': 2.0.2(c97ec8c2b592a5244fdb2fef80c40053)
+      '@omnixys/security': 2.1.0(c97ec8c2b592a5244fdb2fef80c40053)
       '@valkey/client': 1.0.0
 
   '@omnixys/context@2.0.0(@fastify/cookie@11.0.2)(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.27)(@nestjs/graphql@13.4.2(@apollo/subgraph@2.14.2(graphql@16.14.0))(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.27)(class-transformer@0.5.1)(class-validator@0.14.4)(graphql@16.14.0)(reflect-metadata@0.2.2)(ts-morph@27.0.2))(@omnixys/contracts@2.0.0(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)))(fastify@5.8.5)(graphql@16.14.0)(rxjs@7.8.2)':
@@ -8466,11 +8466,11 @@ snapshots:
       class-validator: 0.14.4
       graphql: 16.14.0
 
-  '@omnixys/kafka@2.1.1(a3adbf8ba24e5d158b3a27fea50ae830)':
+  '@omnixys/kafka@2.1.1(552c097a1096c6f2938b841168f230c9)':
     dependencies:
       '@nestjs/common': 11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.27(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.27)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@omnixys/cache': 2.0.2(040fff364ceb62b0a95349f229ddab54)
+      '@omnixys/cache': 2.0.2(06ee71975e91ea248d50f59c73bf972d)
       '@omnixys/context': 2.0.0(@fastify/cookie@11.0.2)(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.27)(@nestjs/graphql@13.4.2(@apollo/subgraph@2.14.2(graphql@16.14.0))(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.27)(class-transformer@0.5.1)(class-validator@0.14.4)(graphql@16.14.0)(reflect-metadata@0.2.2)(ts-morph@27.0.2))(@omnixys/contracts@2.0.0(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)))(fastify@5.8.5)(graphql@16.14.0)(rxjs@7.8.2)
       '@omnixys/contracts': 2.0.0(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))
       '@omnixys/logger': 2.0.1(fe0cd5e2ea74cc0a8928a7b757fe6865)
@@ -8513,7 +8513,7 @@ snapshots:
       - '@opentelemetry/core'
       - supports-color
 
-  '@omnixys/security@2.0.2(c97ec8c2b592a5244fdb2fef80c40053)':
+  '@omnixys/security@2.1.0(c97ec8c2b592a5244fdb2fef80c40053)':
     dependencies:
       '@fastify/cookie': 11.0.2
       '@nestjs/axios': 4.0.1(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(axios@1.16.1)(rxjs@7.8.2)

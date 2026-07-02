@@ -115,6 +115,16 @@ export const handleAuth = (input: any): GatewayRequestContext => {
   const token = headers['authorization'] ?? null;
   const cookieHeader = headers['cookie'] ?? null;
 
+  const activeEvent = getCookieValue('activeEvent', cookieHeader);
+
+  federationLogger.info(
+    {
+      cookieHeader,
+      activeEvent,
+    },
+    'Incoming cookies',
+  );
+
   // Extract JWT from cookie if no Authorization header present
   const cookieToken = getCookieValue('access_token', cookieHeader);
   const bearerToken = token ?? (cookieToken ? `Bearer ${cookieToken}` : null);

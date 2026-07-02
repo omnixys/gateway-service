@@ -87,7 +87,7 @@
     "@omnixys/kafka": "^2.1.1",
     "@omnixys/logger": "^2.0.1",
     "@omnixys/observability": "^2.0.0",
-    "@omnixys/security": "^2.0.2",
+    "@omnixys/security": "^2.1.0",
     "@prisma/client": "^6.19.3",
     "@valkey/client": "^1.0.0",
     "cfonts": "^3.3.1",
