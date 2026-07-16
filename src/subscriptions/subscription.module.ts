@@ -1,6 +1,7 @@
 // /backend/gateway/src/subscriptions/subscription.module.ts
 
 import { GraphQLValkeyPubSubAdapter } from './adapter/graphql-valkey-pubsub.adapter.js';
+import { ChatAccessService } from './chat-access.service.js';
 import { UserSignupSubscriptionResolver } from './subscription.resolver.js';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
@@ -28,6 +29,7 @@ import { GraphQLModule } from '@nestjs/graphql';
   providers: [
     UserSignupSubscriptionResolver,
     GraphQLValkeyPubSubAdapter,
+    ChatAccessService,
     {
       provide: 'PUBSUB',
       useExisting: GraphQLValkeyPubSubAdapter,

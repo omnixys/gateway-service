@@ -55,6 +55,7 @@ export class GraphQLValkeyPubSubAdapter extends PubSubEngine {
 
           // one-time listener
           const listener: Listener = (payload) => {
+            self.listeners.get(trigger)?.delete(listener);
             resolve({
               value: payload as T,
               done: false,

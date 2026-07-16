@@ -18,6 +18,16 @@
 import 'dotenv/config';
 import process from 'node:process';
 
+const MAX_TIMER_MS = 2_147_483_647;
+
+function positiveTimerMs(key: string, fallback: number): number {
+  const parsed = Number(process.env[key] ?? fallback);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+  return Math.min(Math.floor(parsed), MAX_TIMER_MS);
+}
+
 function secret(key: string, fallback: string): string {
   const value = process.env[key];
   if (!value && process.env.NODE_ENV === 'production') {
@@ -66,6 +76,11 @@ export const env = {
 
   /** Port on which the Node/NestJS server runs */
   PORT: Number(process.env.PORT ?? 4000),
+  SUPERGRAPH_RETRY_INITIAL_MS: positiveTimerMs(
+    'SUPERGRAPH_RETRY_INITIAL_MS',
+    1_000,
+  ),
+  SUPERGRAPH_RETRY_MAX_MS: positiveTimerMs('SUPERGRAPH_RETRY_MAX_MS', 10_000),
   COOKIE_SECRET: secret('COOKIE_SECRET', 'omnixys-development-secret'),
 
   /** Keycloak / OAuth client configuration */
@@ -105,6 +120,17 @@ export const env = {
   SEAT_URI: process.env.SEAT_URI ?? 'http://localhost:7409/graphql',
   ADDRESS_URI: process.env.ADDRESS_URI ?? 'http://localhost:7004/graphql',
   LOGSTREAM_URI: process.env.LOGSTREAM_URI ?? 'http://localhost:7401/graphql',
+  CHAT_URI: process.env.CHAT_URI ?? 'http://localhost:8001/graphql',
+  COMMUNICATION_GATEWAY_URI:
+    process.env.COMMUNICATION_GATEWAY_URI ?? 'http://localhost:8002/graphql',
+  CHAT_SERVICE_API_KEY: secret(
+    'CHAT_SERVICE_API_KEY',
+    'omnixys-chat-local-key',
+  ),
+  COMMUNICATION_GATEWAY_API_KEY: secret(
+    'COMMUNICATION_GATEWAY_API_KEY',
+    'omnixys-gateway-local-key',
+  ),
 } as const;
 
 // /**

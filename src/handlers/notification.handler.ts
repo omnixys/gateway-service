@@ -1,14 +1,19 @@
-/**
- * @license GPL-3.0-or-later
- */
-
+import { InternalMessagePayload } from '../subscriptions/models/payloads/internal-message.payload.js';
+import {
+  SupportMessageDirection,
+  SupportMessagePayload,
+} from '../subscriptions/models/payloads/support-message.payload.js';
 import { UserSignedUpPayload } from '../subscriptions/models/payloads/user-signup.payload.js';
 import {
   MessageDirection,
   WhatsAppMessage,
 } from '../subscriptions/models/payloads/whatsapp-message.payload.js';
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import { WhatsAppMessageDTO } from '@omnixys/contracts';
+import {
+  InternalMessageSentDTO,
+  SupportMessageReceivedDTO,
+  WhatsAppMessageDTO,
+} from '@omnixys/contracts';
 import {
   IKafkaEventContext,
   KafkaEvent,
@@ -18,19 +23,22 @@ import {
 import { OmnixysLogger } from '@omnixys/logger';
 import { PubSubEngine } from 'graphql-subscriptions';
 
-/**
- * Kafka → GraphQL Subscription bridge.
- *
- * Responsibilities:
- * - Consume Kafka event
- * - Transform payload
- * - Publish via GraphQL PubSub
- *
- * Design:
- * - One method per topic
- * - No switch/case
- * - Fully typed envelope
- */
+type KafkaDateValue = Date | number | string | null | undefined;
+
+export function normalizeKafkaDate(value: KafkaDateValue): string | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date.toISOString();
+}
+
 @KafkaEventHandler('notification')
 @Injectable()
 export class NotificationHandler {
@@ -45,38 +53,18 @@ export class NotificationHandler {
     this.logger = logger.log(this.constructor.name);
   }
 
-  /**
-   * =========================
-   * GATEWAY → SEND CREDENTIALS
-   * =========================
-   */
   @KafkaEvent(KafkaTopics.gateway.sendCredentials)
   async handleSendCredentials(
     payload: UserSignedUpPayload,
     _context: IKafkaEventContext,
   ): Promise<void> {
-    /**
-     * Defensive check:
-     * In distributed systems PubSub might be disabled.
-     */
     if (!this.pubsub) {
       return;
     }
-
-    /**
-     * Log with structured payload for traceability.
-     */
     this.logger.debug('Publishing user signup subscription event', {
       userId: payload.userId,
       invitationId: payload.invitationId,
     });
-
-    /**
-     * Publish to GraphQL subscription layer.
-     *
-     * Important:
-     * Keep payload flat and client-friendly.
-     */
     await this.pubsub.publish('USER_SIGNED_UP', {
       userId: payload.userId,
       username: payload.username,
@@ -91,19 +79,13 @@ export class NotificationHandler {
     payload: WhatsAppMessageDTO,
     _context: IKafkaEventContext,
   ): Promise<void> {
-    /**
-     * Defensive check:
-     * In distributed systems PubSub might be disabled.
-     */
     if (!this.pubsub) {
       return;
     }
-
     this.logger.debug('Publishing WhatsApp subscription event', {
       messageId: payload.value.id,
       chatId: payload.value.chatId,
     });
-
     const whatsappMessage: WhatsAppMessage = {
       id: payload.value.id,
       chatId: payload.value.chatId,
@@ -111,17 +93,80 @@ export class NotificationHandler {
       from: payload.value.from,
       to: payload.value.to,
       body: payload.value.body ?? undefined,
-      createdAt: payload.value.createdAt.toDateString(),
+      createdAt: normalizeKafkaDate(payload.value.createdAt),
     };
-
-    /**
-     * Publish to GraphQL subscription layer.
-     *
-     * Important:
-     * Keep payload flat and client-friendly.
-     */
     await this.pubsub.publish(`whatsapp.message.${whatsappMessage.chatId}`, {
       whatsappMessage,
+    });
+  }
+
+  @KafkaEvent(KafkaTopics.conversation.internalMessage)
+  async handleInternalMessage(
+    payload: InternalMessageSentDTO,
+    _context: IKafkaEventContext,
+  ): Promise<void> {
+    if (!this.pubsub) {
+      return;
+    }
+    this.logger.debug('Publishing internal message subscription event', {
+      conversationId: payload.conversationId,
+      messageId: payload.id,
+      participantIds: payload.participantIds,
+    });
+    const internalMessage: InternalMessagePayload = {
+      id: payload.id,
+      conversationId: payload.conversationId,
+      senderId: payload.senderId,
+      body: payload.body,
+      priority: payload.priority,
+      createdAt: payload.createdAt,
+    };
+    // Publish to each participant's personal channel for secure per-user delivery
+    const targets = payload.participantIds ?? [];
+    if (targets.length === 0) {
+      await this.pubsub.publish(`internal.message.${payload.conversationId}`, {
+        internalMessage,
+      });
+      return;
+    }
+    await Promise.all(
+      targets.map((userId) =>
+        this.pubsub.publish(`internal.message.${userId}`, { internalMessage }),
+      ),
+    );
+  }
+
+  @KafkaEvent(KafkaTopics.conversation.agentReplied)
+  @KafkaEvent(KafkaTopics.conversation.guestReplied)
+  async handleSupportMessage(
+    payload: SupportMessageReceivedDTO,
+    _context: IKafkaEventContext,
+  ): Promise<void> {
+    if (!this.pubsub) {
+      return;
+    }
+    this.logger.debug('Publishing support message subscription event', {
+      conversationId: payload.conversationId,
+      messageId: payload.id,
+    });
+    const supportMessage: SupportMessagePayload = {
+      id: payload.id,
+      conversationId: payload.conversationId,
+      direction:
+        payload.direction === 'INBOUND'
+          ? SupportMessageDirection.INBOUND
+          : SupportMessageDirection.OUTBOUND,
+      channel: payload.channel,
+      fromUserId: payload.fromUserId,
+      fromGuest: payload.fromGuest,
+      body: payload.body,
+      mediaUrl: payload.mediaUrl,
+      mimeType: payload.mimeType,
+      status: payload.status,
+      createdAt: payload.createdAt,
+    };
+    await this.pubsub.publish(`support.message.${payload.conversationId}`, {
+      supportMessage,
     });
   }
 }

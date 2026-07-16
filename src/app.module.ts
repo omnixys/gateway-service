@@ -8,6 +8,7 @@
 // /Users/gentlebookpro/Projekte/checkpoint/backend/gateway/src/app.module.ts
 import { BannerService } from './banner.service.js';
 import { env } from './config/env.js';
+import { RetryingSupergraphManager } from './graphql/retrying-supergraph-manager.js';
 import { HandlerModule } from './handlers/handler.module.js';
 import { HealthModule } from './health/health.module.js';
 import { SubscriptionServerModule } from './subscriptions/subscription.module.js';
@@ -42,6 +43,11 @@ const {
   NOTIFICATION_URI,
   ADDRESS_URI,
   LOGSTREAM_URI,
+  CHAT_URI,
+  COMMUNICATION_GATEWAY_URI,
+  COMMUNICATION_GATEWAY_API_KEY,
+  SUPERGRAPH_RETRY_INITIAL_MS,
+  SUPERGRAPH_RETRY_MAX_MS,
 } = env;
 
 const federationLogger = getLogger('GatewayFederation');
@@ -351,26 +357,45 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
       },
       gateway: {
         // Federation v2 via Introspect & Compose
-        supergraphSdl: new IntrospectAndCompose({
-          pollIntervalInMs: isProd ? 60_000 : 10_000,
-          subgraphs: [
-            { name: 'authentication', url: AUTHENTICATION_URI },
-            { name: 'user', url: USER_URI },
-            { name: 'event', url: EVENT_URI },
-            { name: 'invitation', url: INVITATION_URI },
-            { name: 'ticket', url: TICKET_URI },
-            { name: 'notification', url: NOTIFICATION_URI },
-            { name: 'seat', url: SEAT_URI },
-            { name: 'address', url: ADDRESS_URI },
-            { name: 'logstream', url: LOGSTREAM_URI },
-          ],
-        }),
+        supergraphSdl: new RetryingSupergraphManager(
+          new IntrospectAndCompose({
+            pollIntervalInMs: isProd ? 60_000 : 10_000,
+            subgraphs: [
+              { name: 'authentication', url: AUTHENTICATION_URI },
+              { name: 'user', url: USER_URI },
+              { name: 'event', url: EVENT_URI },
+              { name: 'invitation', url: INVITATION_URI },
+              { name: 'ticket', url: TICKET_URI },
+              { name: 'notification', url: NOTIFICATION_URI },
+              { name: 'seat', url: SEAT_URI },
+              { name: 'address', url: ADDRESS_URI },
+              { name: 'logstream', url: LOGSTREAM_URI },
+              { name: 'chat', url: CHAT_URI },
+              {
+                name: 'communication-gateway',
+                url: COMMUNICATION_GATEWAY_URI,
+              },
+            ],
+          }),
+          {
+            initialDelayMs: SUPERGRAPH_RETRY_INITIAL_MS,
+            maxDelayMs: SUPERGRAPH_RETRY_MAX_MS,
+            onRetry: ({ attempt, delayMs, error }) =>
+              federationLogger.warn(
+                { attempt, delayMs, error },
+                'Subgraph introspection failed during startup; retrying',
+              ),
+          },
+        ),
 
         // RemoteGraphQLDataSource: hier leiten wir Headers an die Subgraphs weiter
-        buildService: ({ url }) =>
+        buildService: ({ name, url }) =>
           new (class extends RemoteGraphQLDataSource {
             override async willSendRequest({ request, context }: any) {
               applyGatewayHeaders(request.http?.headers, context as GatewayRequestContext);
+              if (name === 'communication-gateway') {
+                request.http?.headers.set('x-internal-api-key', COMMUNICATION_GATEWAY_API_KEY);
+              }
             }
           })({ url }),
       },

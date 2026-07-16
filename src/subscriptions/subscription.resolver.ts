@@ -1,19 +1,52 @@
 import { GraphQLValkeyPubSubAdapter } from './adapter/graphql-valkey-pubsub.adapter.js';
+import { ChatAccessService } from './chat-access.service.js';
+import { ChatConversationPayload } from './models/payloads/chat-conversation.payload.js';
+import { ChatMessagePayload } from './models/payloads/chat-message.payload.js';
+import { ConversationUnreadPayload } from './models/payloads/conversation-unread.payload.js';
+import { InternalMessagePayload } from './models/payloads/internal-message.payload.js';
+import { NotificationReceivedPayload } from './models/payloads/notification-received.payload.js';
+import { SupportMessagePayload } from './models/payloads/support-message.payload.js';
 import { UserSignedUpPayload } from './models/payloads/user-signup.payload.js';
 import { WhatsAppMessage } from './models/payloads/whatsapp-message.payload.js';
 import { Inject, UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { RealmRoleType } from '@omnixys/contracts';
-import { CookieAuthGuard, RoleGuard, Roles } from '@omnixys/security';
+import {
+  CookieAuthGuard,
+  CurrentUser,
+  type CurrentUserData,
+  RoleGuard,
+  Roles,
+} from '@omnixys/security';
 
 interface WhatsAppMessageSubscriptionPayload {
   whatsappMessage: WhatsAppMessage;
+}
+
+interface SupportMessageSubscriptionPayload {
+  supportMessage: SupportMessagePayload;
+}
+
+interface InternalMessageSubscriptionPayload {
+  internalMessage: InternalMessagePayload;
+}
+
+interface NotificationReceivedSubscriptionPayload {
+  notificationReceived: NotificationReceivedPayload;
+}
+
+function parseChatEvent(payload: unknown): ChatMessagePayload {
+  if (typeof payload === 'string') {
+    return JSON.parse(payload) as ChatMessagePayload;
+  }
+  return payload as ChatMessagePayload;
 }
 
 @Resolver()
 export class UserSignupSubscriptionResolver {
   constructor(
     @Inject('PUBSUB') private readonly pubsub: GraphQLValkeyPubSubAdapter,
+    private readonly chatAccess: ChatAccessService,
   ) {}
 
   @Query(() => String, { name: 'wsPing' })
@@ -38,6 +71,81 @@ export class UserSignupSubscriptionResolver {
   ): AsyncIterator<WhatsAppMessageSubscriptionPayload> {
     return this.pubsub.asyncIterator<WhatsAppMessageSubscriptionPayload>(
       `whatsapp.message.${chatId}`,
+    );
+  }
+
+  @Subscription(() => SupportMessagePayload)
+  @UseGuards(CookieAuthGuard)
+  supportMessageReceived(
+    @Args('conversationId') conversationId: string,
+  ): AsyncIterator<SupportMessageSubscriptionPayload> {
+    return this.pubsub.asyncIterator<SupportMessageSubscriptionPayload>(
+      `support.message.${conversationId}`,
+    );
+  }
+
+  @Subscription(() => ConversationUnreadPayload)
+  @UseGuards(CookieAuthGuard)
+  conversationUnreadUpdated(
+    @Args('conversationId') conversationId: string,
+  ): AsyncIterator<ConversationUnreadPayload> {
+    return this.pubsub.asyncIterator<ConversationUnreadPayload>(
+      `unreadCount.updated.${conversationId}`,
+    );
+  }
+
+  @Subscription(() => InternalMessagePayload)
+  @UseGuards(CookieAuthGuard)
+  internalMessageReceived(
+    @CurrentUser() user: CurrentUserData,
+  ): AsyncIterator<InternalMessageSubscriptionPayload> {
+    return this.pubsub.asyncIterator<InternalMessageSubscriptionPayload>(
+      `internal.message.${user.id}`,
+    );
+  }
+
+  @Subscription(() => NotificationReceivedPayload)
+  @UseGuards(CookieAuthGuard)
+  notificationReceived(
+    @CurrentUser() user: CurrentUserData,
+  ): AsyncIterator<NotificationReceivedSubscriptionPayload> {
+    return this.pubsub.asyncIterator<NotificationReceivedSubscriptionPayload>(
+      `notification.user.${user.id}`,
+    );
+  }
+
+  @Subscription(() => ChatMessagePayload, {
+    name: 'messageReceived',
+    resolve: (payload: unknown): ChatMessagePayload => parseChatEvent(payload),
+  })
+  @UseGuards(CookieAuthGuard)
+  async messageReceived(
+    @Args('conversationId') conversationId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AsyncIterator<ChatMessagePayload>> {
+    await this.chatAccess.assertParticipant(conversationId, user.id);
+    return this.pubsub.asyncIterator<ChatMessagePayload>(
+      `chat:conversation:${conversationId}`,
+    );
+  }
+
+  @Subscription(() => ChatConversationPayload, {
+    name: 'conversationUpdated',
+    resolve: (payload: unknown): ChatConversationPayload => {
+      const event = parseChatEvent(payload);
+      return {
+        id: event.conversationId,
+        lastMessage: event.body,
+        lastMessageAt: event.createdAt,
+      };
+    },
+  })
+  @UseGuards(CookieAuthGuard)
+  conversationUpdated(
+    @CurrentUser() user: CurrentUserData,
+  ): AsyncIterator<ChatMessagePayload> {
+    return this.pubsub.asyncIterator<ChatMessagePayload>(
+      `chat:user:${user.id}`,
     );
   }
 }

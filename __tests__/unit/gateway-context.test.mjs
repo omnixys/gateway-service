@@ -3,7 +3,10 @@ import {
   handleAuth,
 } from '../../dist/app.module.js';
 import { ContextAccessor } from '@omnixys/context';
-import { NotificationHandler } from '../../dist/handlers/notification.handler.js';
+import {
+  NotificationHandler,
+  normalizeKafkaDate,
+} from '../../dist/handlers/notification.handler.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -58,7 +61,8 @@ test('applyGatewayHeaders does not crash when context is empty (no meta)', () =>
     {},
   );
 
-  assert.equal(values.size, 0);
+  assert.equal(values.size, 1);
+  assert.equal(values.has('x-internal-token'), true);
 });
 
 test('applyGatewayHeaders does not crash when context.meta is missing', () => {
@@ -133,4 +137,51 @@ test('signup subscriptions never expose credentials', async () => {
 
   assert.equal(published.topic, 'USER_SIGNED_UP');
   assert.equal('password' in published.payload, false);
+});
+
+test('normalizeKafkaDate accepts Date and serialized Kafka timestamps', () => {
+  const iso = '2026-07-04T19:46:53.975Z';
+
+  assert.equal(normalizeKafkaDate(new Date(iso)), iso);
+  assert.equal(normalizeKafkaDate(iso), iso);
+  assert.equal(normalizeKafkaDate('not-a-date'), undefined);
+  assert.equal(normalizeKafkaDate(undefined), undefined);
+});
+
+test('whatsapp message subscriptions accept Kafka string timestamps', async () => {
+  let published;
+  const handler = new NotificationHandler(
+    {
+      async publish(topic, payload) {
+        published = { topic, payload };
+      },
+    },
+    {
+      log() {
+        return { debug() {}, info() {}, warn() {}, error() {} };
+      },
+    },
+  );
+
+  await handler.handleMessageCreated(
+    {
+      key: 'chat-1',
+      value: {
+        id: 'message-1',
+        chatId: 'chat-1',
+        direction: 'INBOUND',
+        from: 'sender',
+        to: 'recipient',
+        body: 'hello',
+        createdAt: '2026-07-04T19:46:53.975Z',
+      },
+    },
+    {},
+  );
+
+  assert.equal(published.topic, 'whatsapp.message.chat-1');
+  assert.equal(
+    published.payload.whatsappMessage.createdAt,
+    '2026-07-04T19:46:53.975Z',
+  );
 });

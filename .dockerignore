@@ -1,0 +1,12 @@
+.git
+.github
+.env
+.env.*
+.npmrc
+.secrets
+node_modules
+dist
+coverage
+log
+*.log
+tsconfig.build.tsbuildinfo
