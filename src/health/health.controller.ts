@@ -66,7 +66,7 @@ export class HealthController {
       checks.push(() => this.#http.pingCheck('keycloak', KEYCLOAK_HEALTH_URL));
     }
     if (TEMPO_HEALTH_URL) {
-      checks.push(() => this.#http.pingCheck('tempo', TEMPO_HEALTH_URL));
+      checks.push(() => this.tempoHealth());
     }
     if (PROMETHEUS_HEALTH_URL) {
       checks.push(() => this.#http.pingCheck('prometheus', PROMETHEUS_HEALTH_URL));
@@ -85,5 +85,18 @@ export class HealthController {
         error: health.error,
       },
     };
+  }
+
+  private async tempoHealth(): Promise<HealthIndicatorResult> {
+    try {
+      return await this.#http.pingCheck('tempo', TEMPO_HEALTH_URL);
+    } catch {
+      return {
+        tempo: {
+          status: 'down',
+          message: 'unreachable – non-blocking',
+        },
+      };
+    }
   }
 }
