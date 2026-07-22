@@ -3,7 +3,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 @ObjectType()
 export class ChatMessagePayload {
   @Field()
-  messageId!: string;
+  id!: string;
 
   @Field()
   conversationId!: string;
@@ -25,4 +25,10 @@ export class ChatMessagePayload {
 
   @Field()
   createdAt!: string;
+
+  @Field({ nullable: true })
+  editedAt?: string;
+
+  @Field({ nullable: true })
+  deletedAt?: string;
 }

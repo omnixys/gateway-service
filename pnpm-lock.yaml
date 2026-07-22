@@ -43,9 +43,6 @@ importers:
       '@fastify/rate-limit':
         specifier: ^10.3.0
         version: 10.3.0
-      '@fastify/websocket':
-        specifier: ^11.2.0
-        version: 11.2.0
       '@nestjs/apollo':
         specifier: ^13.4.2
         version: 13.4.2(@apollo/gateway@2.14.2(graphql@16.14.0))(@apollo/server@5.5.1(graphql@16.14.0))(@apollo/subgraph@2.14.2(graphql@16.14.0))(@as-integrations/fastify@3.1.0(@apollo/server@5.5.1(graphql@16.14.0))(fastify@5.8.5))(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.27)(@nestjs/graphql@13.4.2(@apollo/subgraph@2.14.2(graphql@16.14.0))(@fastify/websocket@11.2.0)(@nestjs/common@11.1.27(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.27)(class-transformer@0.5.1)(class-validator@0.14.4)(graphql@16.14.0)(reflect-metadata@0.2.2)(ts-morph@27.0.2))(graphql@16.14.0)
@@ -7924,6 +7921,7 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
   '@gar/promise-retry@1.0.3': {}
 

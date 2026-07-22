@@ -23,7 +23,6 @@ import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
-import websocket from '@fastify/websocket';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -138,8 +137,6 @@ async function bootstrap(): Promise<void> {
     max: 100, // max. Requests pro Minute
     timeWindow: '1 minute',
   });
-
-  await app.register(websocket);
 
   // ======================================================
   // ⚙️ CONFIGURATION

@@ -11,7 +11,6 @@ import { env } from './config/env.js';
 import { RetryingSupergraphManager } from './graphql/retrying-supergraph-manager.js';
 import { HandlerModule } from './handlers/handler.module.js';
 import { HealthModule } from './health/health.module.js';
-import { SubscriptionServerModule } from './subscriptions/subscription.module.js';
 import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
 import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
@@ -125,7 +124,8 @@ export const handleAuth = (input: any): GatewayRequestContext => {
 
   federationLogger.info(
     {
-      cookieHeader,
+      hasCookieHeader: Boolean(cookieHeader),
+      hasAccessToken: Boolean(getCookieValue('access_token', cookieHeader)),
       activeEvent,
     },
     'Incoming cookies',
@@ -400,7 +400,6 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
           })({ url }),
       },
     }),
-    SubscriptionServerModule,
     HandlerModule,
     HealthModule,
 

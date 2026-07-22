@@ -9,7 +9,7 @@ import { SupportMessagePayload } from './models/payloads/support-message.payload
 import { UserSignedUpPayload } from './models/payloads/user-signup.payload.js';
 import { WhatsAppMessage } from './models/payloads/whatsapp-message.payload.js';
 import { Inject, UseGuards } from '@nestjs/common';
-import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, ID, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { RealmRoleType } from '@omnixys/contracts';
 import {
   CookieAuthGuard,
@@ -35,11 +35,54 @@ interface NotificationReceivedSubscriptionPayload {
   notificationReceived: NotificationReceivedPayload;
 }
 
-function parseChatEvent(payload: unknown): ChatMessagePayload {
+interface ChatEvent {
+  messageId: string;
+  conversationId: string;
+  senderId: string;
+  body: string;
+  contentType: string;
+  channel: string;
+  deliveryStatus: string;
+  createdAt: string;
+  editedAt?: string;
+  deletedAt?: string;
+}
+
+function parseChatEvent(payload: unknown): ChatEvent {
   if (typeof payload === 'string') {
-    return JSON.parse(payload) as ChatMessagePayload;
+    return JSON.parse(payload) as ChatEvent;
   }
-  return payload as ChatMessagePayload;
+  return payload as ChatEvent;
+}
+
+export function toChatMessage(payload: unknown): ChatMessagePayload {
+  const event = parseChatEvent(payload);
+  return {
+    id: event.messageId,
+    conversationId: event.conversationId,
+    senderId: event.senderId,
+    body: event.body,
+    contentType: event.contentType,
+    channel: event.channel,
+    deliveryStatus: event.deliveryStatus,
+    createdAt: event.createdAt,
+    editedAt: event.editedAt,
+    deletedAt: event.deletedAt,
+  };
+}
+
+export function toChatConversation(payload: unknown): ChatConversationPayload {
+  const event = parseChatEvent(payload);
+  return {
+    id: event.conversationId,
+    channel: event.channel,
+    lastMessage: event.body,
+    lastMessageAt: event.createdAt,
+    unreadCount: 0,
+    externalAddress: undefined,
+    externalDisplayName: undefined,
+    participants: [],
+  };
 }
 
 @Resolver()
@@ -116,11 +159,11 @@ export class UserSignupSubscriptionResolver {
 
   @Subscription(() => ChatMessagePayload, {
     name: 'messageReceived',
-    resolve: (payload: unknown): ChatMessagePayload => parseChatEvent(payload),
+    resolve: (payload: unknown): ChatMessagePayload => toChatMessage(payload),
   })
   @UseGuards(CookieAuthGuard)
   async messageReceived(
-    @Args('conversationId') conversationId: string,
+    @Args('conversationId', { type: () => ID }) conversationId: string,
     @CurrentUser() user: CurrentUserData,
   ): Promise<AsyncIterator<ChatMessagePayload>> {
     await this.chatAccess.assertParticipant(conversationId, user.id);
@@ -131,14 +174,8 @@ export class UserSignupSubscriptionResolver {
 
   @Subscription(() => ChatConversationPayload, {
     name: 'conversationUpdated',
-    resolve: (payload: unknown): ChatConversationPayload => {
-      const event = parseChatEvent(payload);
-      return {
-        id: event.conversationId,
-        lastMessage: event.body,
-        lastMessageAt: event.createdAt,
-      };
-    },
+    resolve: (payload: unknown): ChatConversationPayload =>
+      toChatConversation(payload),
   })
   @UseGuards(CookieAuthGuard)
   conversationUpdated(

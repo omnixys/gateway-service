@@ -7,6 +7,13 @@ import {
   NotificationHandler,
   normalizeKafkaDate,
 } from '../../dist/handlers/notification.handler.js';
+import { createSubscriptionContext } from '../../dist/subscriptions/subscription.module.js';
+import { GraphQLValkeyPubSubAdapter } from '../../dist/subscriptions/adapter/graphql-valkey-pubsub.adapter.js';
+import {
+  toChatConversation,
+  toChatMessage,
+  UserSignupSubscriptionResolver,
+} from '../../dist/subscriptions/subscription.resolver.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -42,6 +49,108 @@ test('gateway derives auth and canonical propagation metadata', () => {
       );
     },
   );
+});
+
+test('subscription context exposes the HttpOnly access token from the upgrade cookie', () => {
+  const request = {
+    headers: {
+      cookie: 'locale=de-DE; access_token=encoded%20token',
+    },
+  };
+
+  const context = createSubscriptionContext({ extra: { request } });
+
+  assert.equal(context.req, request);
+  assert.equal(context.req.cookies.access_token, 'encoded token');
+  assert.equal(context.req.cookies.locale, 'de-DE');
+});
+
+test('chat events match the subscription schema expected by the frontend', () => {
+  const event = {
+    messageId: 'message-1',
+    conversationId: 'conversation-1',
+    senderId: 'user-1',
+    body: 'Hallo',
+    contentType: 'TEXT',
+    channel: 'INTERNAL',
+    deliveryStatus: 'SENT',
+    createdAt: '2026-07-23T10:00:00.000Z',
+    editedAt: null,
+    deletedAt: null,
+  };
+
+  assert.equal(toChatMessage(event).id, 'message-1');
+  assert.deepEqual(toChatConversation(JSON.stringify(event)), {
+    id: 'conversation-1',
+    channel: 'INTERNAL',
+    lastMessage: 'Hallo',
+    lastMessageAt: '2026-07-23T10:00:00.000Z',
+    unreadCount: 0,
+    externalAddress: undefined,
+    externalDisplayName: undefined,
+    participants: [],
+  });
+});
+
+test('Valkey iterator shares a channel and unsubscribes after its last listener', async () => {
+  let handler;
+  let releaseSubscribe;
+  const subscribeCalls = [];
+  const unsubscribeCalls = [];
+  const valkey = {
+    async publish() {},
+    async subscribe(channel, nextHandler) {
+      subscribeCalls.push(channel);
+      await new Promise((resolve) => {
+        releaseSubscribe = resolve;
+      });
+      handler = nextHandler;
+    },
+    async unsubscribe(channel) {
+      unsubscribeCalls.push(channel);
+    },
+  };
+  const adapter = new GraphQLValkeyPubSubAdapter(valkey);
+  const first = adapter.asyncIterator('chat:conversation:1');
+  const second = adapter.asyncIterator('chat:conversation:1');
+  const firstResult = first.next();
+  const secondResult = second.next();
+
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(subscribeCalls, ['chat:conversation:1']);
+  releaseSubscribe();
+  await new Promise((resolve) => setImmediate(resolve));
+  handler({ id: 'message-1' });
+  assert.deepEqual(await firstResult, { value: { id: 'message-1' }, done: false });
+  assert.deepEqual(await secondResult, { value: { id: 'message-1' }, done: false });
+
+  await first.return();
+  assert.deepEqual(unsubscribeCalls, []);
+  await second.return();
+  assert.deepEqual(unsubscribeCalls, ['chat:conversation:1']);
+});
+
+test('a rejected chat participant never opens a Valkey listener', async () => {
+  const channels = [];
+  const resolver = new UserSignupSubscriptionResolver(
+    {
+      asyncIterator(channel) {
+        channels.push(channel);
+        return { next: async () => ({ done: true }) };
+      },
+    },
+    {
+      async assertParticipant() {
+        throw new Error('Conversation access denied');
+      },
+    },
+  );
+
+  await assert.rejects(
+    resolver.messageReceived('conversation-1', { id: 'rachel' }),
+    /access denied/,
+  );
+  assert.deepEqual(channels, []);
 });
 
 test('applyGatewayHeaders does not crash when context is undefined', () => {

@@ -11,9 +11,19 @@ import { PubSubEngine } from 'graphql-subscriptions';
 
 type Listener = (payload: any) => void;
 
+interface TriggerState {
+  listeners: Set<Listener>;
+  subscribed: boolean;
+  transition: Promise<void>;
+}
+
+interface PendingResult<T> {
+  resolve: (result: IteratorResult<T>) => void;
+}
+
 @Injectable()
 export class GraphQLValkeyPubSubAdapter extends PubSubEngine {
-  private listeners = new Map<string, Set<Listener>>();
+  private readonly triggers = new Map<string, TriggerState>();
 
   constructor(private readonly valkey: ValkeyPubSubService) {
     super();
@@ -31,57 +41,113 @@ export class GraphQLValkeyPubSubAdapter extends PubSubEngine {
     return;
   }
 
-  asyncIterator<T>(trigger: string): AsyncIterator<T> {
-    const self = this;
+  asyncIterator<T>(trigger: string): AsyncIterableIterator<T> {
+    const queue: T[] = [];
+    const pending: PendingResult<T>[] = [];
+    let active = true;
 
-    // 1) ERST das Objekt erzeugen
-    const iterator: AsyncIterator<T> = {
-      async next() {
-        return new Promise((resolve) => {
-          // Erste Subscription für diesen Kanal → registrieren
-          if (!self.listeners.has(trigger)) {
-            self.listeners.set(trigger, new Set<Listener>());
-
-            // global valkey subscription
-            self.valkey.subscribe(trigger, (msg) => {
-              const set = self.listeners.get(trigger);
-              if (set) {
-                for (const fn of set) {
-                  fn(msg);
-                }
-              }
-            });
-          }
-
-          // one-time listener
-          const listener: Listener = (payload) => {
-            self.listeners.get(trigger)?.delete(listener);
-            resolve({
-              value: payload as T,
-              done: false,
-            });
-          };
-
-          self.listeners.get(trigger)!.add(listener);
-        });
-      },
-
-      return() {
-        return Promise.resolve({
-          value: undefined,
-          done: true,
-        });
-      },
-
-      throw(error) {
-        return Promise.reject(error);
-      },
+    const listener: Listener = (payload) => {
+      if (!active) {
+        return;
+      }
+      const waiter = pending.shift();
+      if (waiter) {
+        waiter.resolve({ value: payload as T, done: false });
+        return;
+      }
+      queue.push(payload as T);
     };
 
-    // 2) JETZT Symbol.asyncIterator hinzufügen
-    (iterator as any)[Symbol.asyncIterator] = () => iterator;
+    const { state, ready } = this.acquire(trigger, listener);
 
-    // 3) Iterator zurückgeben
-    return iterator;
+    const close = async (): Promise<IteratorResult<T>> => {
+      if (!active) {
+        return { value: undefined, done: true };
+      }
+      active = false;
+      queue.length = 0;
+      for (const waiter of pending.splice(0)) {
+        waiter.resolve({ value: undefined, done: true });
+      }
+      await this.release(trigger, state, listener);
+      return { value: undefined, done: true };
+    };
+
+    return {
+      next: async (): Promise<IteratorResult<T>> => {
+        await ready;
+        if (!active) {
+          return { value: undefined, done: true };
+        }
+        const value = queue.shift();
+        if (value !== undefined) {
+          return { value, done: false };
+        }
+        return new Promise<IteratorResult<T>>((resolve) => {
+          pending.push({ resolve });
+        });
+      },
+      return: close,
+      throw: async (error?: unknown): Promise<IteratorResult<T>> => {
+        await close();
+        throw error;
+      },
+      [Symbol.asyncIterator]() {
+        return this;
+      },
+    };
+  }
+
+  private acquire(
+    trigger: string,
+    listener: Listener,
+  ): {
+    state: TriggerState;
+    ready: Promise<void>;
+  } {
+    let state = this.triggers.get(trigger);
+    if (!state) {
+      state = {
+        listeners: new Set<Listener>(),
+        subscribed: false,
+        transition: Promise.resolve(),
+      };
+      this.triggers.set(trigger, state);
+    }
+    state.listeners.add(listener);
+    state.transition = state.transition
+      .catch(() => undefined)
+      .then(async () => {
+        if (state.listeners.size === 0 || state.subscribed) {
+          return;
+        }
+        await this.valkey.subscribe(trigger, (payload) => {
+          for (const currentListener of state.listeners) {
+            currentListener(payload);
+          }
+        });
+        state.subscribed = true;
+      });
+    return { state, ready: state.transition };
+  }
+
+  private release(
+    trigger: string,
+    state: TriggerState,
+    listener: Listener,
+  ): Promise<void> {
+    state.listeners.delete(listener);
+    state.transition = state.transition
+      .catch(() => undefined)
+      .then(async () => {
+        if (state.listeners.size === 0 && state.subscribed) {
+          await this.valkey.unsubscribe(trigger);
+          state.subscribed = false;
+        }
+        if (state.listeners.size === 0 && !state.subscribed) {
+          this.triggers.delete(trigger);
+        }
+      });
+    return state.transition;
   }
 }
