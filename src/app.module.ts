@@ -438,10 +438,6 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
       serviceName: SERVICE,
       registerGlobalInterceptor: true,
 
-      kafka: {
-        enabled: true,
-        topic: 'logstream.input',
-      },
       batch: {
         enabled: true,
         maxSize: 50,
