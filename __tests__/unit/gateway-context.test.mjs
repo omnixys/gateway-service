@@ -3,10 +3,8 @@ import {
   handleAuth,
 } from '../../dist/app.module.js';
 import { ContextAccessor } from '@omnixys/context';
-import {
-  NotificationHandler,
-  normalizeKafkaDate,
-} from '../../dist/handlers/notification.handler.js';
+import { NotificationHandler } from '../../dist/handlers/notification.handler.js';
+import { ChatAccessService } from '../../dist/subscriptions/chat-access.service.js';
 import { createSubscriptionContext } from '../../dist/subscriptions/subscription.module.js';
 import { GraphQLValkeyPubSubAdapter } from '../../dist/subscriptions/adapter/graphql-valkey-pubsub.adapter.js';
 import {
@@ -153,6 +151,43 @@ test('a rejected chat participant never opens a Valkey listener', async () => {
   assert.deepEqual(channels, []);
 });
 
+test('chat access check maps denied, missing and unavailable responses', async (t) => {
+  const service = new ChatAccessService();
+  const fetchMock = t.mock.method(globalThis, 'fetch');
+
+  fetchMock.mock.mockImplementationOnce(async () =>
+    new Response(null, { status: 403 }),
+  );
+  await assert.rejects(
+    service.assertParticipant('conversation-1', 'foreign-user'),
+    (error) => error?.getStatus?.() === 403,
+  );
+
+  fetchMock.mock.mockImplementationOnce(async () =>
+    new Response(null, { status: 404 }),
+  );
+  await assert.rejects(
+    service.assertParticipant('missing', 'user-1'),
+    (error) => error?.getStatus?.() === 404,
+  );
+
+  fetchMock.mock.mockImplementationOnce(async () =>
+    new Response(null, { status: 500 }),
+  );
+  await assert.rejects(
+    service.assertParticipant('conversation-1', 'user-1'),
+    (error) => error?.getStatus?.() === 503,
+  );
+
+  fetchMock.mock.mockImplementationOnce(async () => {
+    throw new TypeError('connection refused');
+  });
+  await assert.rejects(
+    service.assertParticipant('conversation-1', 'user-1'),
+    (error) => error?.getStatus?.() === 503,
+  );
+});
+
 test('applyGatewayHeaders does not crash when context is undefined', () => {
   const values = new Map();
   applyGatewayHeaders(
@@ -246,51 +281,4 @@ test('signup subscriptions never expose credentials', async () => {
 
   assert.equal(published.topic, 'USER_SIGNED_UP');
   assert.equal('password' in published.payload, false);
-});
-
-test('normalizeKafkaDate accepts Date and serialized Kafka timestamps', () => {
-  const iso = '2026-07-04T19:46:53.975Z';
-
-  assert.equal(normalizeKafkaDate(new Date(iso)), iso);
-  assert.equal(normalizeKafkaDate(iso), iso);
-  assert.equal(normalizeKafkaDate('not-a-date'), undefined);
-  assert.equal(normalizeKafkaDate(undefined), undefined);
-});
-
-test('whatsapp message subscriptions accept Kafka string timestamps', async () => {
-  let published;
-  const handler = new NotificationHandler(
-    {
-      async publish(topic, payload) {
-        published = { topic, payload };
-      },
-    },
-    {
-      log() {
-        return { debug() {}, info() {}, warn() {}, error() {} };
-      },
-    },
-  );
-
-  await handler.handleMessageCreated(
-    {
-      key: 'chat-1',
-      value: {
-        id: 'message-1',
-        chatId: 'chat-1',
-        direction: 'INBOUND',
-        from: 'sender',
-        to: 'recipient',
-        body: 'hello',
-        createdAt: '2026-07-04T19:46:53.975Z',
-      },
-    },
-    {},
-  );
-
-  assert.equal(published.topic, 'whatsapp.message.chat-1');
-  assert.equal(
-    published.payload.whatsappMessage.createdAt,
-    '2026-07-04T19:46:53.975Z',
-  );
 });

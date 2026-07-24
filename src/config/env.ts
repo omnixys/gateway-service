@@ -72,7 +72,10 @@ export const env = {
   KEYS_PATH: process.env.KEYS_PATH ?? './keys',
 
   /** Tempo tracing endpoint */
-  TEMPO_URI: process.env.TEMPO_URI ?? 'http://localhost:4318/v1/traces',
+  TEMPO_URI:
+    process.env.OTEL_EXPORTER_OTLP_ENDPOINT ??
+    process.env.TEMPO_URI ??
+    'http://localhost:4318',
 
   /** Port on which the Node/NestJS server runs */
   PORT: Number(process.env.PORT ?? 4000),
@@ -119,7 +122,6 @@ export const env = {
   USER_URI: process.env.USER_URI ?? 'http://localhost:7402/graphql',
   SEAT_URI: process.env.SEAT_URI ?? 'http://localhost:7409/graphql',
   ADDRESS_URI: process.env.ADDRESS_URI ?? 'http://localhost:7004/graphql',
-  LOGSTREAM_URI: process.env.LOGSTREAM_URI ?? 'http://localhost:7401/graphql',
   CHAT_URI: process.env.CHAT_URI ?? 'http://localhost:8001/graphql',
   COMMUNICATION_GATEWAY_URI:
     process.env.COMMUNICATION_GATEWAY_URI ?? 'http://localhost:8002/graphql',

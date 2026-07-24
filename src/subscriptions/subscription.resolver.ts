@@ -7,7 +7,6 @@ import { InternalMessagePayload } from './models/payloads/internal-message.paylo
 import { NotificationReceivedPayload } from './models/payloads/notification-received.payload.js';
 import { SupportMessagePayload } from './models/payloads/support-message.payload.js';
 import { UserSignedUpPayload } from './models/payloads/user-signup.payload.js';
-import { WhatsAppMessage } from './models/payloads/whatsapp-message.payload.js';
 import { Inject, UseGuards } from '@nestjs/common';
 import { Args, ID, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { RealmRoleType } from '@omnixys/contracts';
@@ -18,10 +17,6 @@ import {
   RoleGuard,
   Roles,
 } from '@omnixys/security';
-
-interface WhatsAppMessageSubscriptionPayload {
-  whatsappMessage: WhatsAppMessage;
-}
 
 interface SupportMessageSubscriptionPayload {
   supportMessage: SupportMessagePayload;
@@ -105,16 +100,6 @@ export class UserSignupSubscriptionResolver {
   @Roles(RealmRoleType.ADMIN)
   userSignedUp(): AsyncIterator<UserSignedUpPayload> {
     return this.pubsub.asyncIterator<UserSignedUpPayload>('USER_SIGNED_UP');
-  }
-
-  @Subscription(() => WhatsAppMessage)
-  @UseGuards(CookieAuthGuard)
-  whatsappMessage(
-    @Args('chatId') chatId: string,
-  ): AsyncIterator<WhatsAppMessageSubscriptionPayload> {
-    return this.pubsub.asyncIterator<WhatsAppMessageSubscriptionPayload>(
-      `whatsapp.message.${chatId}`,
-    );
   }
 
   @Subscription(() => SupportMessagePayload)

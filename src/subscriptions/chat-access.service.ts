@@ -10,10 +10,15 @@ import {
 export class ChatAccessService {
   async assertParticipant(conversationId: string, userId: string): Promise<void> {
     const baseUrl = new URL(env.CHAT_URI).origin;
-    const response = await fetch(
-      `${baseUrl}/api/v1/internal/conversations/${encodeURIComponent(conversationId)}/participants/${encodeURIComponent(userId)}`,
-      { headers: { 'x-api-key': env.CHAT_SERVICE_API_KEY } },
-    );
+    let response: Response;
+    try {
+      response = await fetch(
+        `${baseUrl}/api/v1/internal/conversations/${encodeURIComponent(conversationId)}/participants/${encodeURIComponent(userId)}`,
+        { headers: { 'x-api-key': env.CHAT_SERVICE_API_KEY } },
+      );
+    } catch {
+      throw new ServiceUnavailableException('Chat access check failed');
+    }
 
     if (response.ok) {
       return;

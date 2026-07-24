@@ -4,15 +4,10 @@ import {
   SupportMessagePayload,
 } from '../subscriptions/models/payloads/support-message.payload.js';
 import { UserSignedUpPayload } from '../subscriptions/models/payloads/user-signup.payload.js';
-import {
-  MessageDirection,
-  WhatsAppMessage,
-} from '../subscriptions/models/payloads/whatsapp-message.payload.js';
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import {
   InternalMessageSentDTO,
   SupportMessageReceivedDTO,
-  WhatsAppMessageDTO,
 } from '@omnixys/contracts';
 import {
   IKafkaEventContext,
@@ -22,22 +17,6 @@ import {
 } from '@omnixys/kafka';
 import { OmnixysLogger } from '@omnixys/logger';
 import { PubSubEngine } from 'graphql-subscriptions';
-
-type KafkaDateValue = Date | number | string | null | undefined;
-
-export function normalizeKafkaDate(value: KafkaDateValue): string | undefined {
-  if (value === null || value === undefined) {
-    return undefined;
-  }
-
-  const date = value instanceof Date ? value : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return undefined;
-  }
-
-  return date.toISOString();
-}
 
 @KafkaEventHandler('notification')
 @Injectable()
@@ -71,32 +50,6 @@ export class NotificationHandler {
       invitationId: payload.invitationId,
       lastName: payload.lastName,
       firstName: payload.firstName,
-    });
-  }
-
-  @KafkaEvent(KafkaTopics.gateway.createWhatsappMessage)
-  async handleMessageCreated(
-    payload: WhatsAppMessageDTO,
-    _context: IKafkaEventContext,
-  ): Promise<void> {
-    if (!this.pubsub) {
-      return;
-    }
-    this.logger.debug('Publishing WhatsApp subscription event', {
-      messageId: payload.value.id,
-      chatId: payload.value.chatId,
-    });
-    const whatsappMessage: WhatsAppMessage = {
-      id: payload.value.id,
-      chatId: payload.value.chatId,
-      direction: payload.value.direction as MessageDirection,
-      from: payload.value.from,
-      to: payload.value.to,
-      body: payload.value.body ?? undefined,
-      createdAt: normalizeKafkaDate(payload.value.createdAt),
-    };
-    await this.pubsub.publish(`whatsapp.message.${whatsappMessage.chatId}`, {
-      whatsappMessage,
     });
   }
 
