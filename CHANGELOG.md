@@ -3,6 +3,28 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.1.0](https://github.com/omnixys/gateway-service/compare/v3.0.0...v3.1.0) (2026-07-24)
+
+### Deps
+
+* **Deps:** remove obsolete/redundant dependencies ([](https://github.com/omnixys/gateway-service/commit/3b96f6ba46fe668489431c1d5dfdeefe5d9e0e24))
+
+### Health
+
+* **Health:** make tempo health check non-blocking ([](https://github.com/omnixys/gateway-service/commit/ff0d85ff43f177dfff5608435505a7b72dbc19fa))
+
+### Log
+
+* **Log:** remove logstream dep ([](https://github.com/omnixys/gateway-service/commit/fabfa18a7d2496ec3d6daddfe74798dc794bcbb4))
+
+### Logger
+
+* **Logger:** remove Kafka log transport config ([](https://github.com/omnixys/gateway-service/commit/61e340ed942f138efa0e0c1cc9d5363d6ac4fa0f))
+
+### Other
+
+* **Other:** secure realtime chat subscriptions ([](https://github.com/omnixys/gateway-service/commit/e3431e57708d12de03a47d74a77f131efeab4a62))
+
 ## [3.0.0](https://github.com/omnixys/gateway-service/compare/v2.1.0...v3.0.0) (2026-07-16)
 
 ### New
