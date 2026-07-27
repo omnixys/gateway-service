@@ -42,7 +42,6 @@ const {
   NOTIFICATION_URI,
   ADDRESS_URI,
   CHAT_URI,
-  COMMUNICATION_GATEWAY_URI,
   COMMUNICATION_GATEWAY_API_KEY,
   SUPERGRAPH_RETRY_INITIAL_MS,
   SUPERGRAPH_RETRY_MAX_MS,
@@ -369,10 +368,6 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
               { name: 'seat', url: SEAT_URI },
               { name: 'address', url: ADDRESS_URI },
               { name: 'chat', url: CHAT_URI },
-              {
-                name: 'communication-gateway',
-                url: COMMUNICATION_GATEWAY_URI,
-              },
             ],
           }),
           {

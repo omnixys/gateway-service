@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Injectable } from '@nestjs/common';
@@ -43,7 +38,7 @@ export class GraphQLValkeyPubSubAdapter extends PubSubEngine {
 
   asyncIterator<T>(trigger: string): AsyncIterableIterator<T> {
     const queue: T[] = [];
-    const pending: PendingResult<T>[] = [];
+    const pending: Array<PendingResult<T>> = [];
     let active = true;
 
     const listener: Listener = (payload) => {
