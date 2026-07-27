@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.1.1](https://github.com/omnixys/gateway-service/compare/v3.1.0...v3.1.1) (2026-07-27)
+
+### Graphql
+
+* **Graphql:** remove communication-gateway graphql api ([](https://github.com/omnixys/gateway-service/commit/17388a0d11a03443e997f52612679afcabdc3f52))
+
 ## [3.1.0](https://github.com/omnixys/gateway-service/compare/v3.0.0...v3.1.0) (2026-07-24)
 
 ### Deps
