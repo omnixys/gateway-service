@@ -63,8 +63,8 @@ export async function registerHelmet(
       },
     });
     logger.info('helmet_registered');
-  } catch (error) {
-    logger.exception(error, 'helmet_registration_failed');
+  } catch (error: unknown) {
+    logger.error({ err: error }, 'helmet_registration_failed');
     throw error;
   }
 }

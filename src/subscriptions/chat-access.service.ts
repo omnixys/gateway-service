@@ -20,7 +20,7 @@ export class ChatAccessService {
         { headers: { 'x-api-key': env.CHAT_SERVICE_API_KEY } },
       );
     } catch {
-      this.#logger.warn('chat_access_http_failed', { conversationId, userId, baseUrl });
+      this.#logger.warn({ conversationId, userId, baseUrl }, 'chat_access_http_failed');
       throw new ServiceUnavailableException('Chat access check failed');
     }
 
@@ -28,14 +28,17 @@ export class ChatAccessService {
       return;
     }
     if (response.status === 403) {
-      this.#logger.warn('chat_access_denied', { conversationId, userId });
+      this.#logger.warn({ conversationId, userId }, 'chat_access_denied');
       throw new ForbiddenException('Conversation access denied');
     }
     if (response.status === 404) {
-      this.#logger.warn('chat_access_not_found', { conversationId, userId });
+      this.#logger.warn({ conversationId, userId }, 'chat_access_not_found');
       throw new NotFoundException('Conversation not found');
     }
-    this.#logger.warn('chat_access_unexpected_status', { conversationId, userId, status: response.status });
+    this.#logger.warn(
+      { conversationId, userId, status: response.status },
+      'chat_access_unexpected_status',
+    );
     throw new ServiceUnavailableException('Chat access check failed');
   }
 }

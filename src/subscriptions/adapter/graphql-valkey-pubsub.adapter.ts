@@ -118,7 +118,10 @@ export class GraphQLValkeyPubSubAdapter extends PubSubEngine {
         if (state.listeners.size === 0 || state.subscribed) {
           return;
         }
-        this.logger.debug('valkey_subscribe', { trigger, listenerCount: state.listeners.size });
+        this.logger.debug(
+          { trigger, listenerCount: state.listeners.size },
+          'valkey_subscribe',
+        );
         await this.valkey.subscribe(trigger, (payload) => {
           for (const currentListener of state.listeners) {
             currentListener(payload);
@@ -139,7 +142,10 @@ export class GraphQLValkeyPubSubAdapter extends PubSubEngine {
       .catch(() => undefined)
       .then(async () => {
         if (state.listeners.size === 0 && state.subscribed) {
-          this.logger.debug('valkey_unsubscribe', { trigger, remainingListeners: state.listeners.size });
+          this.logger.debug(
+            { trigger, remainingListeners: state.listeners.size },
+            'valkey_unsubscribe',
+          );
           await this.valkey.unsubscribe(trigger);
           state.subscribed = false;
         }

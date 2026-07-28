@@ -110,7 +110,7 @@ export class UserSignupSubscriptionResolver {
   supportMessageReceived(
     @Args('conversationId') conversationId: string,
   ): AsyncIterator<SupportMessageSubscriptionPayload> {
-    this.#logger.debug('support_message_subscription', { conversationId });
+    this.#logger.debug({ conversationId }, 'support_message_subscription');
     return this.pubsub.asyncIterator<SupportMessageSubscriptionPayload>(
       `support.message.${conversationId}`,
     );
@@ -121,7 +121,7 @@ export class UserSignupSubscriptionResolver {
   conversationUnreadUpdated(
     @Args('conversationId') conversationId: string,
   ): AsyncIterator<ConversationUnreadPayload> {
-    this.#logger.debug('conversation_unread_subscription', { conversationId });
+    this.#logger.debug({ conversationId }, 'conversation_unread_subscription');
     return this.pubsub.asyncIterator<ConversationUnreadPayload>(
       `unreadCount.updated.${conversationId}`,
     );
@@ -132,7 +132,7 @@ export class UserSignupSubscriptionResolver {
   internalMessageReceived(
     @CurrentUser() user: CurrentUserData,
   ): AsyncIterator<InternalMessageSubscriptionPayload> {
-    this.#logger.debug('internal_message_subscription', { userId: user.id });
+    this.#logger.debug({ userId: user.id }, 'internal_message_subscription');
     return this.pubsub.asyncIterator<InternalMessageSubscriptionPayload>(
       `internal.message.${user.id}`,
     );
@@ -143,7 +143,7 @@ export class UserSignupSubscriptionResolver {
   notificationReceived(
     @CurrentUser() user: CurrentUserData,
   ): AsyncIterator<NotificationReceivedSubscriptionPayload> {
-    this.#logger.debug('notification_subscription', { userId: user.id });
+    this.#logger.debug({ userId: user.id }, 'notification_subscription');
     return this.pubsub.asyncIterator<NotificationReceivedSubscriptionPayload>(
       `notification.user.${user.id}`,
     );
@@ -159,7 +159,10 @@ export class UserSignupSubscriptionResolver {
     @CurrentUser() user: CurrentUserData,
   ): Promise<AsyncIterator<ChatMessagePayload>> {
     await this.chatAccess.assertParticipant(conversationId, user.id);
-    this.#logger.debug('chat_message_subscription', { conversationId, userId: user.id });
+    this.#logger.debug(
+      { conversationId, userId: user.id },
+      'chat_message_subscription',
+    );
     return this.pubsub.asyncIterator<ChatMessagePayload>(
       `chat:conversation:${conversationId}`,
     );
@@ -174,7 +177,7 @@ export class UserSignupSubscriptionResolver {
   conversationUpdated(
     @CurrentUser() user: CurrentUserData,
   ): AsyncIterator<ChatMessagePayload> {
-    this.#logger.debug('chat_conversation_subscription', { userId: user.id });
+    this.#logger.debug({ userId: user.id }, 'chat_conversation_subscription');
     return this.pubsub.asyncIterator<ChatMessagePayload>(
       `chat:user:${user.id}`,
     );
