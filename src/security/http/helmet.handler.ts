@@ -24,6 +24,9 @@
 
 import helmet from '@fastify/helmet';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { getLogger } from '@omnixys/logger';
+
+const logger = getLogger('HelmetHandler');
 
 /**
  * Registers @fastify/helmet with predefined security settings.
@@ -33,29 +36,35 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 export async function registerHelmet(
   app: NestFastifyApplication,
 ): Promise<void> {
-  await app.register(helmet, {
-    contentSecurityPolicy: {
-      useDefaults: true,
-      directives: {
-        defaultSrc: ["'self'", 'https:'],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https:'],
-        imgSrc: ["'self'", 'data:'],
+  try {
+    await app.register(helmet, {
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          defaultSrc: ["'self'", 'https:'],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https:'],
+          imgSrc: ["'self'", 'data:'],
+        },
+        reportOnly: false,
       },
-      reportOnly: false,
-    },
-    // Strict Transport Security
-    hsts: {
-      maxAge: 31536000, // 1 year in seconds
-      includeSubDomains: true,
-      preload: true,
-    },
-    // Hide X-Powered-By header
-    hidePoweredBy: true,
-    // Prevent MIME sniffing
-    noSniff: true,
-    // Frameguard (click-jacking)
-    frameguard: {
-      action: 'sameorigin',
-    },
-  });
+      // Strict Transport Security
+      hsts: {
+        maxAge: 31536000, // 1 year in seconds
+        includeSubDomains: true,
+        preload: true,
+      },
+      // Hide X-Powered-By header
+      hidePoweredBy: true,
+      // Prevent MIME sniffing
+      noSniff: true,
+      // Frameguard (click-jacking)
+      frameguard: {
+        action: 'sameorigin',
+      },
+    });
+    logger.info('helmet_registered');
+  } catch (error) {
+    logger.exception(error, 'helmet_registration_failed');
+    throw error;
+  }
 }

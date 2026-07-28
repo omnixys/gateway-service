@@ -27,6 +27,7 @@ import {
   type HealthIndicatorResult,
 } from '@nestjs/terminus';
 import { ValkeyService } from '@omnixys/cache';
+import { getLogger } from '@omnixys/logger';
 
 const { KEYCLOAK_HEALTH_URL, TEMPO_HEALTH_URL, PROMETHEUS_HEALTH_URL } = env;
 @Controller('health')
@@ -35,6 +36,7 @@ export class HealthController {
   readonly #http: HttpHealthIndicator;
   readonly #kafka: KafkaIndicator;
   readonly #cache: ValkeyService;
+  readonly #logger = getLogger(HealthController.name);
 
   constructor(
     health: HealthCheckService,
@@ -51,12 +53,14 @@ export class HealthController {
   @Get('liveness')
   @HealthCheck()
   liveness(): Promise<HealthCheckResult> {
+    this.#logger.debug('liveness_check');
     return this.#health.check([() => Promise.resolve({ app: { status: 'up' } })]);
   }
 
   @Get('readiness')
   @HealthCheck()
   readiness(): Promise<HealthCheckResult> {
+    this.#logger.debug('readiness_check');
     const checks: HealthIndicatorFunction[] = [
       () => Promise.resolve({ app: { status: 'up' } }),
       () => this.#kafka.isHealthy(),

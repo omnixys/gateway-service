@@ -19,6 +19,7 @@ import { AdminService } from './admin.service.js';
 import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { RealmRoleType } from '@omnixys/contracts';
 import { CookieAuthGuard, RoleGuard, Roles } from '@omnixys/security';
+import { getLogger } from '@omnixys/logger';
 
 /**
  * Controller providing REST endpoints for administrative operations
@@ -36,6 +37,8 @@ import { CookieAuthGuard, RoleGuard, Roles } from '@omnixys/security';
 @UseGuards(CookieAuthGuard, RoleGuard)
 @Roles(RealmRoleType.ADMIN)
 export class AdminController {
+  readonly #logger = getLogger(AdminController.name);
+
   /**
    * Creates a new instance of {@link AdminController}.
    *
@@ -58,6 +61,7 @@ export class AdminController {
    */
   @Get('health')
   async getHealth(): Promise<{ status: string; uptime: number }> {
+    this.#logger.debug('admin_health_check');
     return this.adminService.getHealth();
   }
 
@@ -79,6 +83,7 @@ export class AdminController {
    */
   @Post('shutdown')
   async shutdown(): Promise<string> {
+    this.#logger.info('admin_shutdown_requested');
     await this.adminService.shutdown();
     return 'Server shutting down...';
   }
@@ -100,6 +105,7 @@ export class AdminController {
    */
   @Post('restart')
   async restart(): Promise<string> {
+    this.#logger.info('admin_restart_requested');
     await this.adminService.restart();
     return 'Server restarting...';
   }
