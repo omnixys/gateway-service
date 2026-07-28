@@ -5,9 +5,12 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { getLogger } from '@omnixys/logger';
 
 @Injectable()
 export class ChatAccessService {
+  readonly #logger = getLogger(ChatAccessService.name);
+
   async assertParticipant(conversationId: string, userId: string): Promise<void> {
     const baseUrl = new URL(env.CHAT_URI).origin;
     let response: Response;
@@ -17,6 +20,7 @@ export class ChatAccessService {
         { headers: { 'x-api-key': env.CHAT_SERVICE_API_KEY } },
       );
     } catch {
+      this.#logger.warn('chat_access_http_failed', { conversationId, userId, baseUrl });
       throw new ServiceUnavailableException('Chat access check failed');
     }
 
@@ -24,11 +28,14 @@ export class ChatAccessService {
       return;
     }
     if (response.status === 403) {
+      this.#logger.warn('chat_access_denied', { conversationId, userId });
       throw new ForbiddenException('Conversation access denied');
     }
     if (response.status === 404) {
+      this.#logger.warn('chat_access_not_found', { conversationId, userId });
       throw new NotFoundException('Conversation not found');
     }
+    this.#logger.warn('chat_access_unexpected_status', { conversationId, userId, status: response.status });
     throw new ServiceUnavailableException('Chat access check failed');
   }
 }

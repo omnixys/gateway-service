@@ -2,6 +2,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { ValkeyPubSubService } from '@omnixys/cache';
+import { getLogger } from '@omnixys/logger';
 import { PubSubEngine } from 'graphql-subscriptions';
 
 type Listener = (payload: any) => void;
@@ -18,6 +19,7 @@ interface PendingResult<T> {
 
 @Injectable()
 export class GraphQLValkeyPubSubAdapter extends PubSubEngine {
+  private readonly logger = getLogger(GraphQLValkeyPubSubAdapter.name);
   private readonly triggers = new Map<string, TriggerState>();
 
   constructor(private readonly valkey: ValkeyPubSubService) {
@@ -116,6 +118,7 @@ export class GraphQLValkeyPubSubAdapter extends PubSubEngine {
         if (state.listeners.size === 0 || state.subscribed) {
           return;
         }
+        this.logger.debug('valkey_subscribe', { trigger, listenerCount: state.listeners.size });
         await this.valkey.subscribe(trigger, (payload) => {
           for (const currentListener of state.listeners) {
             currentListener(payload);
@@ -136,6 +139,7 @@ export class GraphQLValkeyPubSubAdapter extends PubSubEngine {
       .catch(() => undefined)
       .then(async () => {
         if (state.listeners.size === 0 && state.subscribed) {
+          this.logger.debug('valkey_unsubscribe', { trigger, remainingListeners: state.listeners.size });
           await this.valkey.unsubscribe(trigger);
           state.subscribed = false;
         }
