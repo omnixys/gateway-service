@@ -3,6 +3,17 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.2.0](https://github.com/omnixys/gateway-service/compare/v3.1.1...v3.2.0) (2026-07-28)
+
+### Gateway
+
+* **Gateway:** add structured logging to subscription, chat-access, and pubsub adapter ([](https://github.com/omnixys/gateway-service/commit/707d821c64b94b2cb4c1f62a26154a54a1c46c61))
+* **Gateway:** add logging to health, helmet, and admin controllers ([](https://github.com/omnixys/gateway-service/commit/e0d327a739db3486214e9c623bec7a99f4d7e0f9))
+
+### Other
+
+* **Other:** resolve lint and type errors in logger calls ([](https://github.com/omnixys/gateway-service/commit/cca10a0dfc32e12bbbe64096ad89a30ecefc757f))
+
 ## [3.1.1](https://github.com/omnixys/gateway-service/compare/v3.1.0...v3.1.1) (2026-07-27)
 
 ### Graphql
