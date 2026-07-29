@@ -19,7 +19,9 @@ import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ValkeyModule } from '@omnixys/cache';
 import { ContextAccessor, ContextModule } from '@omnixys/context';
+import { createGraphQLFormatError } from '@omnixys/graphql';
 import { KafkaModule } from '@omnixys/kafka';
+import { OmnixysHttpModule } from '@omnixys/http';
 import { getLogger, LoggerModule } from '@omnixys/logger';
 import { ObservabilityModule } from '@omnixys/observability';
 import { SecurityModule } from '@omnixys/security';
@@ -322,6 +324,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
 @Module({
   imports: [
     ContextModule.forRoot(),
+    OmnixysHttpModule.forRoot({ serviceName: SERVICE }),
     ConfigModule.forRoot({ isGlobal: true }),
     SecurityModule.forRoot({
       jwt: {
@@ -335,6 +338,10 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
       driver: ApolloGatewayDriver,
 
       server: {
+        formatError: createGraphQLFormatError({
+          serviceName: SERVICE,
+          preserveSafeSubgraphExtensions: true,
+        }),
         // Wichtig: Context baut die Infos, die in willSendRequest unten landen
         context: (request: any) => handleAuth(request),
         // Plugin: fange Auth-Antworten ab und setze Cookies auf Gateway-Origin

@@ -160,7 +160,7 @@ test('chat access check maps denied, missing and unavailable responses', async (
   );
   await assert.rejects(
     service.assertParticipant('conversation-1', 'foreign-user'),
-    (error) => error?.getStatus?.() === 403,
+    (error) => error?.code === 'CONVERSATION_ACCESS_DENIED' && error?.httpStatus === 403,
   );
 
   fetchMock.mock.mockImplementationOnce(async () =>
@@ -168,7 +168,7 @@ test('chat access check maps denied, missing and unavailable responses', async (
   );
   await assert.rejects(
     service.assertParticipant('missing', 'user-1'),
-    (error) => error?.getStatus?.() === 404,
+    (error) => error?.code === 'CONVERSATION_NOT_FOUND' && error?.httpStatus === 404,
   );
 
   fetchMock.mock.mockImplementationOnce(async () =>
@@ -176,7 +176,7 @@ test('chat access check maps denied, missing and unavailable responses', async (
   );
   await assert.rejects(
     service.assertParticipant('conversation-1', 'user-1'),
-    (error) => error?.getStatus?.() === 503,
+    (error) => error?.code === 'DEPENDENCY_UNAVAILABLE' && error?.httpStatus === 503,
   );
 
   fetchMock.mock.mockImplementationOnce(async () => {
@@ -184,7 +184,7 @@ test('chat access check maps denied, missing and unavailable responses', async (
   });
   await assert.rejects(
     service.assertParticipant('conversation-1', 'user-1'),
-    (error) => error?.getStatus?.() === 503,
+    (error) => error?.code === 'DEPENDENCY_UNAVAILABLE' && error?.httpStatus === 503,
   );
 });
 
