@@ -116,6 +116,9 @@ export const env = {
     process.env.AUTHENTICATION_URI ?? 'http://localhost:7501/graphql',
   EVENT_URI: process.env.EVENT_URI ?? 'http://localhost:7406/graphql',
   INVITATION_URI: process.env.INVITATION_URI ?? 'http://localhost:7407/graphql',
+  INVITATION_ANALYTICS_TENANT_URI:
+    process.env.INVITATION_ANALYTICS_TENANT_URI ??
+    'http://localhost:7407/internal/analytics/tenant',
   TICKET_URI: process.env.TICKET_URI ?? 'http://localhost:7408/graphql',
   NOTIFICATION_URI:
     process.env.NOTIFICATION_URI ?? 'http://localhost:3005/graphql',
@@ -125,8 +128,7 @@ export const env = {
   CHAT_URI: process.env.CHAT_URI ?? 'http://localhost:8001/graphql',
   COMMUNICATION_GATEWAY_URI:
     process.env.COMMUNICATION_GATEWAY_URI ?? 'http://localhost:8002/graphql',
-  ANALYTICS_URI:
-    process.env.ANALYTICS_URI ?? 'http://localhost:7410/graphql',
+  ANALYTICS_URI: process.env.ANALYTICS_URI ?? 'http://localhost:7410/graphql',
   ANALYTICS_INGESTION_URI:
     process.env.ANALYTICS_INGESTION_URI ??
     'http://localhost:7410/v1/analytics/batch',

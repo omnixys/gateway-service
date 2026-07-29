@@ -1,5 +1,5 @@
-import { env } from '../config/env.js';
 import { corsOptions } from '../config/cors.js';
+import { env } from '../config/env.js';
 import {
   BadGatewayException,
   Body,
@@ -13,6 +13,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ContextAccessor } from '@omnixys/context';
+import { isUUID } from 'class-validator';
 import type { FastifyReply } from 'fastify';
 
 const FORWARDED_HEADERS = [
@@ -39,22 +40,25 @@ export const CHECKPOINT_ANALYTICS_EVENTS = [
   'TicketDownloaded',
 ] as const;
 
+interface AnalyticsTokenRequest {
+  publicReference?: {
+    type?: 'event' | 'invitation';
+    id?: string;
+  };
+}
+
 @Controller('v1/analytics')
 export class AnalyticsIngestionController {
   @Post('token')
   async issueToken(
     @RequestHeaders()
     incomingHeaders: Record<string, string | string[] | undefined>,
+    @Body() body?: AnalyticsTokenRequest,
   ): Promise<unknown> {
     const context = ContextAccessor.get();
-    const tenantId = context?.tenant?.verified
-      ? context.tenant.tenantId
-      : undefined;
+    let tenantId = context?.tenant?.verified ? context.tenant.tenantId : undefined;
     if (!tenantId) {
-      throw new ForbiddenException({
-        code: 'VERIFIED_TENANT_REQUIRED',
-        message: 'A verified tenant context is required',
-      });
+      tenantId = await resolvePublicTenant(body?.publicReference);
     }
     const origin = firstHeader(incomingHeaders.origin);
     if (!origin || !allowedOrigins().has(origin)) {
@@ -145,6 +149,38 @@ export class AnalyticsIngestionController {
   }
 }
 
+async function resolvePublicTenant(
+  reference: AnalyticsTokenRequest['publicReference'],
+): Promise<string> {
+  if (
+    !reference ||
+    (reference.type !== 'event' && reference.type !== 'invitation') ||
+    !reference.id ||
+    !isUUID(reference.id)
+  ) {
+    throw new ForbiddenException({
+      code: 'VERIFIED_TENANT_REQUIRED',
+      message: 'A verified tenant context or public RSVP reference is required',
+    });
+  }
+  const result = await proxyJson(env.INVITATION_ANALYTICS_TENANT_URI, {
+    headers: {
+      'content-type': 'application/json',
+      'x-internal-token': env.INTERNAL_GATEWAY_TOKEN,
+    },
+    body: reference,
+  });
+  const tenantId =
+    result && typeof result === 'object' ? (result as Record<string, unknown>).tenantId : undefined;
+  if (typeof tenantId !== 'string' || !isUUID(tenantId)) {
+    throw new BadGatewayException({
+      code: 'INVITATION_TENANT_INVALID',
+      message: 'Invitation returned an invalid tenant resolution',
+    });
+  }
+  return tenantId;
+}
+
 async function proxyJson(
   url: string,
   input: {
@@ -177,9 +213,7 @@ async function proxyJson(
 function allowedOrigins(): Set<string> {
   return new Set(
     Array.isArray(corsOptions.origin)
-      ? corsOptions.origin.filter(
-          (origin): origin is string => typeof origin === 'string',
-        )
+      ? corsOptions.origin.filter((origin): origin is string => typeof origin === 'string')
       : [],
   );
 }
