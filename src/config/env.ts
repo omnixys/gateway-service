@@ -130,6 +130,12 @@ export const env = {
   ANALYTICS_INGESTION_URI:
     process.env.ANALYTICS_INGESTION_URI ??
     'http://localhost:7410/v1/analytics/batch',
+  ANALYTICS_TOKEN_URI:
+    process.env.ANALYTICS_TOKEN_URI ??
+    'http://localhost:7410/v1/analytics/tokens',
+  ANALYTICS_FLAGS_URI:
+    process.env.ANALYTICS_FLAGS_URI ??
+    'http://localhost:7410/v1/analytics/flags/evaluate',
   CHAT_SERVICE_API_KEY: secret(
     'CHAT_SERVICE_API_KEY',
     'omnixys-chat-local-key',

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { BadGatewayException } from '@nestjs/common';
 import { AnalyticsIngestionController } from '../../dist/analytics/analytics-ingestion.controller.js';
+import { ContextAccessor } from '@omnixys/context';
 
 test('analytics batch proxy preserves API-key and correlation headers', async (t) => {
   const originalFetch = globalThis.fetch;
@@ -14,6 +15,7 @@ test('analytics batch proxy preserves API-key and correlation headers', async (t
     assert.equal(init.method, 'POST');
     assert.equal(init.headers.get('authorization'), 'Bearer omx_live.secret');
     assert.equal(init.headers.get('x-correlation-id'), 'correlation-1');
+    assert.equal(init.headers.get('origin'), 'https://checkpoint.omnixys.com');
     assert.equal(init.headers.get('x-tenant-id'), null);
     return new Response(
       JSON.stringify({
@@ -39,6 +41,7 @@ test('analytics batch proxy preserves API-key and correlation headers', async (t
       authorization: 'Bearer omx_live.secret',
       'x-correlation-id': 'correlation-1',
       'x-tenant-id': 'spoofed-tenant',
+      origin: 'https://checkpoint.omnixys.com',
     },
     { batchId: 'batch-1', events: [{}] },
     reply,
@@ -67,4 +70,40 @@ test('analytics batch proxy maps transport failures to a typed 502', async (t) =
       error instanceof BadGatewayException &&
       error.getResponse().code === 'ANALYTICS_UNAVAILABLE',
   );
+});
+
+test('analytics token broker uses only the verified tenant and fixed allowlist', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+  const tenantId = '00000000-0000-4000-8000-000000000001';
+  globalThis.fetch = async (_url, init) => {
+    assert.equal(init.headers['x-tenant-id'], tenantId);
+    assert.equal(init.headers['x-internal-token'].length > 0, true);
+    const body = JSON.parse(init.body);
+    assert.equal(body.origin, 'https://checkpoint.omnixys.com');
+    assert.equal(body.events.includes('LoginStarted'), true);
+    assert.equal(body.events.includes('arbitrary-client-event'), false);
+    return new Response(JSON.stringify({ token: 'browser-token', expiresIn: 900 }), {
+      status: 200,
+    });
+  };
+
+  const result = await ContextAccessor.run(
+    {
+      requestId: 'request-token',
+      correlationId: 'request-token',
+      startedAtEpochMs: Date.now(),
+      tenant: { tenantId, source: 'jwt-claim', verified: true },
+      client: {},
+      transport: {},
+      trace: {},
+    },
+    () =>
+      new AnalyticsIngestionController().issueToken({
+        origin: 'https://checkpoint.omnixys.com',
+      }),
+  );
+  assert.equal(result.token, 'browser-token');
 });
