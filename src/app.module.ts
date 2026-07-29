@@ -7,6 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // /Users/gentlebookpro/Projekte/checkpoint/backend/gateway/src/app.module.ts
 import { BannerService } from './banner.service.js';
+import { AnalyticsIngestionController } from './analytics/analytics-ingestion.controller.js';
 import { env } from './config/env.js';
 import { RetryingSupergraphManager } from './graphql/retrying-supergraph-manager.js';
 import { HandlerModule } from './handlers/handler.module.js';
@@ -42,6 +43,7 @@ const {
   NOTIFICATION_URI,
   ADDRESS_URI,
   CHAT_URI,
+  ANALYTICS_URI,
   COMMUNICATION_GATEWAY_API_KEY,
   SUPERGRAPH_RETRY_INITIAL_MS,
   SUPERGRAPH_RETRY_MAX_MS,
@@ -368,6 +370,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
               { name: 'seat', url: SEAT_URI },
               { name: 'address', url: ADDRESS_URI },
               { name: 'chat', url: CHAT_URI },
+              { name: 'analytics', url: ANALYTICS_URI },
             ],
           }),
           {
@@ -438,6 +441,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
       },
     }),
   ],
+  controllers: [AnalyticsIngestionController],
   providers: [BannerService],
 })
 export class AppModule {}

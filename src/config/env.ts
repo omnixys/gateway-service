@@ -125,6 +125,11 @@ export const env = {
   CHAT_URI: process.env.CHAT_URI ?? 'http://localhost:8001/graphql',
   COMMUNICATION_GATEWAY_URI:
     process.env.COMMUNICATION_GATEWAY_URI ?? 'http://localhost:8002/graphql',
+  ANALYTICS_URI:
+    process.env.ANALYTICS_URI ?? 'http://localhost:7410/graphql',
+  ANALYTICS_INGESTION_URI:
+    process.env.ANALYTICS_INGESTION_URI ??
+    'http://localhost:7410/v1/analytics/batch',
   CHAT_SERVICE_API_KEY: secret(
     'CHAT_SERVICE_API_KEY',
     'omnixys-chat-local-key',
