@@ -17,6 +17,7 @@
 
 import 'dotenv/config';
 import process from 'node:process';
+import { isUUID } from 'class-validator';
 
 const MAX_TIMER_MS = 2_147_483_647;
 
@@ -26,6 +27,14 @@ function positiveTimerMs(key: string, fallback: number): number {
     return fallback;
   }
   return Math.min(Math.floor(parsed), MAX_TIMER_MS);
+}
+
+function requiredTenantId(): string {
+  const value = process.env.DEFAULT_TENANT_ID;
+  if (!value || !isUUID(value, '4')) {
+    throw new Error('[ENV] DEFAULT_TENANT_ID must be a valid UUID v4');
+  }
+  return value;
 }
 
 function secret(key: string, fallback: string): string {
@@ -85,6 +94,9 @@ export const env = {
   ),
   SUPERGRAPH_RETRY_MAX_MS: positiveTimerMs('SUPERGRAPH_RETRY_MAX_MS', 10_000),
   COOKIE_SECRET: secret('COOKIE_SECRET', 'omnixys-development-secret'),
+
+  /** Canonical tenant used as fallback for public, tenantless operations. */
+  DEFAULT_TENANT_ID: requiredTenantId(),
 
   /** Keycloak / OAuth client configuration */
   KC_CLIENT_SECRET: process.env.KC_CLIENT_SECRET ?? '',

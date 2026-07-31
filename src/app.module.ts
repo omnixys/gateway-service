@@ -6,8 +6,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // /Users/gentlebookpro/Projekte/checkpoint/backend/gateway/src/app.module.ts
-import { BannerService } from './banner.service.js';
 import { AnalyticsIngestionController } from './analytics/analytics-ingestion.controller.js';
+import { BannerService } from './banner.service.js';
 import { env } from './config/env.js';
 import { RetryingSupergraphManager } from './graphql/retrying-supergraph-manager.js';
 import { HandlerModule } from './handlers/handler.module.js';
@@ -17,14 +17,15 @@ import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
-import { ValkeyModule } from '@omnixys/cache';
-import { ContextAccessor, ContextModule } from '@omnixys/context';
-import { createGraphQLFormatError } from '@omnixys/graphql';
-import { KafkaModule } from '@omnixys/kafka';
-import { OmnixysHttpModule } from '@omnixys/http';
-import { getLogger, LoggerModule } from '@omnixys/logger';
-import { ObservabilityModule } from '@omnixys/observability';
-import { SecurityModule } from '@omnixys/security';
+import { ValkeyModule } from '@omnixys/cache-ts';
+import { ContextAccessor, ContextModule } from '@omnixys/context-ts';
+import { createGraphQLFormatError } from '@omnixys/graphql-ts';
+import { OmnixysHttpModule } from '@omnixys/http-ts';
+import { KafkaModule } from '@omnixys/kafka-ts';
+import { getLogger, LoggerModule } from '@omnixys/logger-ts';
+import { ObservabilityModule } from '@omnixys/observability-ts';
+import { SecurityModule } from '@omnixys/security-ts';
+import { isUUID } from 'class-validator';
 
 const {
   SERVICE,
@@ -52,6 +53,31 @@ const {
 } = env;
 
 const federationLogger = getLogger('GatewayFederation');
+
+/**
+ * GraphQL operations that are intentionally tenantless (public flows).
+ * For these, the gateway falls back to `env.DEFAULT_TENANT_ID` when no
+ * valid `x-tenant-id` header is present. Authenticated business requests
+ * never receive a fallback — the tenant is resolved from the principal JWT
+ * downstream, and a missing/invalid header yields 400/401.
+ */
+const PUBLIC_TENANTLESS_OPERATIONS = new Set([
+  'credentialsLogin',
+  'refresh',
+  'authenticate',
+  'loginTotp',
+  'verifyWebAuthnAuthentication',
+  'verifyMagicLink',
+  'verifySignUp',
+  'register',
+  'forgotPassword',
+  'resetPassword',
+  'verifyGuest',
+]);
+
+const TENANTLESS_OPERATION_RE = new RegExp(
+  `\\b(?:${[...PUBLIC_TENANTLESS_OPERATIONS].join('|')})\\b`,
+);
 
 export interface AuthToken {
   accessToken: string;
@@ -97,6 +123,7 @@ export interface GatewayRequestContext {
   requestId?: string;
   correlationId?: string;
   traceparent?: string;
+  tenantId?: string;
   meta: { ip?: string; ua?: string; host?: string; origin?: string };
 }
 
@@ -152,6 +179,11 @@ export const handleAuth = (input: any): GatewayRequestContext => {
     host: headers['host'] ?? '',
     origin: headers['origin'] ?? '',
   };
+  const tenantId = resolveTenantId(
+    headers['x-tenant-id'],
+    body?.operationName,
+    query,
+  );
   const requestId = current?.requestId ?? headerValue(headers['x-request-id']) ?? undefined;
   const correlationId =
     current?.correlationId ?? headerValue(headers['x-correlation-id']) ?? requestId;
@@ -167,9 +199,43 @@ export const handleAuth = (input: any): GatewayRequestContext => {
     requestId,
     correlationId,
     traceparent,
+    tenantId,
     meta,
   };
 };
+
+/**
+ * Resolve the outgoing tenant identifier.
+ *
+ * - A valid `x-tenant-id` UUID is forwarded as-is.
+ * - Without a valid header, only public tenantless operations get the
+ *   configured default tenant; everything else stays `undefined` so the
+ *   subgraph resolves the tenant from the principal or rejects the request.
+ */
+function resolveTenantId(
+  header: unknown,
+  operationName: unknown,
+  query: string,
+): string | undefined {
+  if (typeof header === 'string' && isUUID(header, '4')) {
+    return header;
+  }
+  const named =
+    typeof operationName === 'string' && operationName.length > 0
+      ? operationName
+      : extractOperationName(query);
+  const isTenantless = named
+    ? PUBLIC_TENANTLESS_OPERATIONS.has(named)
+    : TENANTLESS_OPERATION_RE.test(query);
+  return isTenantless ? env.DEFAULT_TENANT_ID : undefined;
+}
+
+function extractOperationName(query: string): string | undefined {
+  const match = query.match(
+    /(?:query|mutation|subscription)\s+([A-Za-z_][A-Za-z0-9_]*)/,
+  );
+  return match?.[1];
+}
 
 function headerValue(value: unknown): string | null {
   if (Array.isArray(value)) {
@@ -186,6 +252,7 @@ function createTraceparent(traceId?: string, spanId?: string): string | null {
 
 interface HeaderSink {
   set(name: string, value: string): unknown;
+  delete(name: string): unknown;
 }
 
 export function applyGatewayHeaders(
@@ -198,6 +265,11 @@ export function applyGatewayHeaders(
   headers.set('x-internal-token', INTERNAL_GATEWAY_TOKEN);
   if (context.isIntrospection) {
     headers.set('x-introspection', 'true');
+  }
+  if (context.tenantId) {
+    headers.set('x-tenant-id', context.tenantId);
+  } else {
+    headers.delete('x-tenant-id');
   }
   if (context.token) {
     headers.set('authorization', context.token);
