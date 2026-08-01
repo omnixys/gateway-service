@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Injectable } from '@nestjs/common';
-import { ValkeyPubSubService } from '@omnixys/cache';
-import { getLogger } from '@omnixys/logger';
+import { ValkeyPubSubService } from '@omnixys/cache-ts';
+import { getLogger } from '@omnixys/logger-ts';
 import { PubSubEngine } from 'graphql-subscriptions';
 
 type Listener = (payload: any) => void;

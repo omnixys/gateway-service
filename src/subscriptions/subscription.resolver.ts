@@ -9,15 +9,15 @@ import { SupportMessagePayload } from './models/payloads/support-message.payload
 import { UserSignedUpPayload } from './models/payloads/user-signup.payload.js';
 import { Inject, UseGuards } from '@nestjs/common';
 import { Args, ID, Query, Resolver, Subscription } from '@nestjs/graphql';
-import { RealmRoleType } from '@omnixys/contracts';
-import { getLogger } from '@omnixys/logger';
+import { RealmRoleType } from '@omnixys/contracts-ts';
+import { getLogger } from '@omnixys/logger-ts';
 import {
   CookieAuthGuard,
   CurrentUser,
   type CurrentUserData,
   RoleGuard,
   Roles,
-} from '@omnixys/security';
+} from '@omnixys/security-ts';
 
 interface SupportMessageSubscriptionPayload {
   supportMessage: SupportMessagePayload;

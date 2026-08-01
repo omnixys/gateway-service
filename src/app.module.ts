@@ -6,20 +6,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // /Users/gentlebookpro/Projekte/checkpoint/backend/gateway/src/app.module.ts
-import { AnalyticsIngestionController } from './analytics/analytics-ingestion.controller.js';
 import { BannerService } from './banner.service.js';
+import { AnalyticsIngestionController } from './analytics/analytics-ingestion.controller.js';
 import { env } from './config/env.js';
 import { RetryingSupergraphManager } from './graphql/retrying-supergraph-manager.js';
 import { HandlerModule } from './handlers/handler.module.js';
 import { HealthModule } from './health/health.module.js';
-import {
-  PlatformGatewayService,
-  getPlatformGateway,
-  setPlatformGateway,
-} from './platform-token/platform-gateway.service.js';
-import { PlatformTokenVerifier } from './platform-token/platform-token.verifier.js';
-import { TenantGrpcService } from './tenant/tenant-grpc.client.js';
-import { TenantValidationService } from './tenant/tenant-validation.service.js';
 import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
 import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
@@ -28,14 +20,11 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ValkeyModule } from '@omnixys/cache-ts';
 import { ContextAccessor, ContextModule } from '@omnixys/context-ts';
 import { createGraphQLFormatError } from '@omnixys/graphql-ts';
-import { GrpcClientModule } from '@omnixys/grpc-ts/clients';
-import { OmnixysHttpModule } from '@omnixys/http-ts';
 import { KafkaModule } from '@omnixys/kafka-ts';
+import { OmnixysHttpModule } from '@omnixys/http-ts';
 import { getLogger, LoggerModule } from '@omnixys/logger-ts';
 import { ObservabilityModule } from '@omnixys/observability-ts';
 import { SecurityModule } from '@omnixys/security-ts';
-import { isUUID } from 'class-validator';
-import { fileURLToPath } from 'node:url';
 
 const {
   SERVICE,
@@ -43,6 +32,8 @@ const {
   TEMPO_URI,
   VALKEY_URL,
   VALKEY_PASSWORD,
+  KC_URL,
+  KC_REALM,
   INTERNAL_GATEWAY_TOKEN,
 
   AUTHENTICATION_URI,
@@ -61,31 +52,6 @@ const {
 } = env;
 
 const federationLogger = getLogger('GatewayFederation');
-
-/**
- * GraphQL operations that are intentionally tenantless (public flows).
- * For these, the gateway falls back to `env.DEFAULT_TENANT_ID` when no
- * valid `x-tenant-id` header is present. Authenticated business requests
- * never receive a fallback — the tenant is resolved from the principal JWT
- * downstream, and a missing/invalid header yields 400/401.
- */
-const PUBLIC_TENANTLESS_OPERATIONS = new Set([
-  'credentialsLogin',
-  'refresh',
-  'authenticate',
-  'loginTotp',
-  'verifyWebAuthnAuthentication',
-  'verifyMagicLink',
-  'verifySignUp',
-  'register',
-  'forgotPassword',
-  'resetPassword',
-  'verifyGuest',
-]);
-
-const TENANTLESS_OPERATION_RE = new RegExp(
-  `\\b(?:${[...PUBLIC_TENANTLESS_OPERATIONS].join('|')})\\b`,
-);
 
 export interface AuthToken {
   accessToken: string;
@@ -131,11 +97,11 @@ export interface GatewayRequestContext {
   requestId?: string;
   correlationId?: string;
   traceparent?: string;
-  tenantId?: string;
+  tenantId?: string | null;
   meta: { ip?: string; ua?: string; host?: string; origin?: string };
 }
 
-export const handleAuth = async (input: any): Promise<GatewayRequestContext> => {
+export const handleAuth = (input: any): GatewayRequestContext => {
   const req = input?.request ?? input?.req ?? (input?.headers ? input : null);
 
   // Federation / Internal Apollo queries have no request object
@@ -187,26 +153,6 @@ export const handleAuth = async (input: any): Promise<GatewayRequestContext> => 
     host: headers['host'] ?? '',
     origin: headers['origin'] ?? '',
   };
-  const isTenantless = isPublicTenantlessOperation(body?.operationName, query);
-
-  let tenantId = isTenantless
-    ? env.DEFAULT_TENANT_ID
-    : typeof headers['x-tenant-id'] === 'string' && isUUID(headers['x-tenant-id'], '4')
-      ? headers['x-tenant-id']
-      : undefined;
-
-  // Edge-Trust-Boundary: Für authentifizierte (nicht-tenantless) Operationen
-  // wird das Plattform-Token verifiziert und der Tenant aus dem `tenant_id`-
-  // Claim abgeleitet (client-Header wird ignoriert), inkl. Membership-Check
-  // gegen den tenant-service (fail-closed, Valkey-Cache).
-  if (!isIntrospection && !isTenantless && bearerToken) {
-    const platform = getPlatformGateway();
-    if (platform) {
-      tenantId =
-        (await platform.resolveTenant(bearerToken.replace(/^Bearer\s+/i, ''))) ?? undefined;
-    }
-  }
-
   const requestId = current?.requestId ?? headerValue(headers['x-request-id']) ?? undefined;
   const correlationId =
     current?.correlationId ?? headerValue(headers['x-correlation-id']) ?? requestId;
@@ -214,6 +160,8 @@ export const handleAuth = async (input: any): Promise<GatewayRequestContext> => 
     createTraceparent(current?.trace?.traceId, current?.trace?.spanId) ??
     headerValue(headers.traceparent) ??
     undefined;
+
+  const tenantId = validUuidHeader(headers['x-tenant-id']);
 
   return {
     token: bearerToken,
@@ -227,25 +175,12 @@ export const handleAuth = async (input: any): Promise<GatewayRequestContext> => 
   };
 };
 
-/**
- * Resolve the outgoing tenant identifier.
- *
- * - A valid `x-tenant-id` UUID is forwarded as-is.
- * - Without a valid header, only public tenantless operations get the
- *   configured default tenant; everything else stays `undefined` so the
- *   subgraph resolves the tenant from the principal or rejects the request.
- */
-function isPublicTenantlessOperation(operationName: unknown, query: string): boolean {
-  const named =
-    typeof operationName === 'string' && operationName.length > 0
-      ? operationName
-      : extractOperationName(query);
-  return named ? PUBLIC_TENANTLESS_OPERATIONS.has(named) : TENANTLESS_OPERATION_RE.test(query);
-}
+const UUID_V4_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function extractOperationName(query: string): string | undefined {
-  const match = query.match(/(?:query|mutation|subscription)\s+([A-Za-z_][A-Za-z0-9_]*)/);
-  return match?.[1];
+function validUuidHeader(value: unknown): string | null {
+  const raw = headerValue(value);
+  return raw && UUID_V4_PATTERN.test(raw) ? raw : null;
 }
 
 function headerValue(value: unknown): string | null {
@@ -263,7 +198,6 @@ function createTraceparent(traceId?: string, spanId?: string): string | null {
 
 interface HeaderSink {
   set(name: string, value: string): unknown;
-  delete(name: string): unknown;
 }
 
 export function applyGatewayHeaders(
@@ -276,11 +210,6 @@ export function applyGatewayHeaders(
   headers.set('x-internal-token', INTERNAL_GATEWAY_TOKEN);
   if (context.isIntrospection) {
     headers.set('x-introspection', 'true');
-  }
-  if (context.tenantId) {
-    headers.set('x-tenant-id', context.tenantId);
-  } else {
-    headers.delete('x-tenant-id');
   }
   if (context.token) {
     headers.set('authorization', context.token);
@@ -296,6 +225,9 @@ export function applyGatewayHeaders(
   }
   if (context.traceparent) {
     headers.set('traceparent', context.traceparent);
+  }
+  if (context.tenantId) {
+    headers.set('x-tenant-id', context.tenantId);
   }
   if (context.meta?.ip) {
     headers.set('x-forwarded-for', context.meta.ip);
@@ -411,16 +343,11 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
     ConfigModule.forRoot({ isGlobal: true }),
     SecurityModule.forRoot({
       jwt: {
-        issuer: env.PLATFORM_ISSUER,
-        jwksUri: env.PLATFORM_JWKS_URI,
+        issuer: `${KC_URL}/realms/${KC_REALM}`,
+        jwksUri: `${KC_URL}/realms/${KC_REALM}/protocol/openid-connect/certs`,
       },
       globalGuards: false,
       rateLimit: { enabled: false },
-    }),
-    GrpcClientModule.register({
-      package: 'omnixys.tenant',
-      protoPath: fileURLToPath(import.meta.resolve('@omnixys/grpc-ts/proto/tenant.proto')),
-      url: env.TENANT_GRPC_URL,
     }),
     GraphQLModule.forRoot<ApolloGatewayDriverConfig>({
       driver: ApolloGatewayDriver,
@@ -537,16 +464,6 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
     }),
   ],
   controllers: [AnalyticsIngestionController],
-  providers: [
-    BannerService,
-    PlatformGatewayService,
-    PlatformTokenVerifier,
-    TenantValidationService,
-    TenantGrpcService,
-  ],
+  providers: [BannerService],
 })
-export class AppModule {
-  constructor(platformGateway: PlatformGatewayService) {
-    setPlatformGateway(platformGateway);
-  }
-}
+export class AppModule {}

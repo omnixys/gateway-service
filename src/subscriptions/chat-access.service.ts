@@ -1,6 +1,6 @@
 import { env } from '../config/env.js';
 import { Injectable } from '@nestjs/common';
-import { ErrorCode, FrameworkException } from '@omnixys/contracts';
+import { ErrorCode, FrameworkException } from '@omnixys/contracts-ts';
 
 @Injectable()
 export class ChatAccessService {

@@ -15,7 +15,6 @@
  * For more information, visit <https://www.gnu.org/licenses/>.
  */
 
-import { isUUID } from 'class-validator';
 import 'dotenv/config';
 import process from 'node:process';
 
@@ -27,14 +26,6 @@ function positiveTimerMs(key: string, fallback: number): number {
     return fallback;
   }
   return Math.min(Math.floor(parsed), MAX_TIMER_MS);
-}
-
-function requiredTenantId(): string {
-  const value = process.env.DEFAULT_TENANT_ID;
-  if (!value || !isUUID(value, '4')) {
-    throw new Error('[ENV] DEFAULT_TENANT_ID must be a valid UUID v4');
-  }
-  return value;
 }
 
 function secret(key: string, fallback: string): string {
@@ -95,9 +86,6 @@ export const env = {
   SUPERGRAPH_RETRY_MAX_MS: positiveTimerMs('SUPERGRAPH_RETRY_MAX_MS', 10_000),
   COOKIE_SECRET: secret('COOKIE_SECRET', 'omnixys-development-secret'),
 
-  /** Canonical tenant used as fallback for public, tenantless operations. */
-  DEFAULT_TENANT_ID: requiredTenantId(),
-
   /** Keycloak / OAuth client configuration */
   KC_CLIENT_SECRET: process.env.KC_CLIENT_SECRET ?? '',
   KC_URL: process.env.KC_URL ?? 'http://localhost:18080/auth',
@@ -105,23 +93,6 @@ export const env = {
   KC_CLIENT_ID: process.env.KC_CLIENT_ID ?? 'camunda-identity',
   KC_ADMIN_USERNAME: process.env.KC_ADMIN_USERNAME ?? 'admin',
   KC_ADMIN_PASSWORD: process.env.KC_ADMIN_PASSWORD ?? 'admin',
-
-  /** Plattform-Token: Issuer + JWKS des authentication-service (Port 7501). */
-  PLATFORM_ISSUER: process.env.PLATFORM_ISSUER ?? 'http://localhost:7501',
-  PLATFORM_JWKS_URI:
-    process.env.PLATFORM_JWKS_URI ??
-    `${process.env.PLATFORM_ISSUER ?? 'http://localhost:7501'}/auth/oidc/certs`,
-
-  /** Tenant-service (gRPC) für die x-tenant-id-Validierung. */
-  TENANT_GRPC_URL: process.env.TENANT_GRPC_URL ?? 'localhost:50052',
-  TENANT_GRPC_GATEWAY_TOKEN: secret(
-    'TENANT_GRPC_GATEWAY_TOKEN',
-    'dev-gateway-service-token',
-  ),
-  /** Cache-TTL für geprüfte Memberships (Valkey). */
-  TENANT_VALIDATION_CACHE_TTL_SEC: Number(
-    process.env.TENANT_VALIDATION_CACHE_TTL_SEC ?? 45,
-  ),
 
   /** Kafka configuration */
   KAFKA_BROKER: process.env.KAFKA_BROKER ?? 'localhost:9092',

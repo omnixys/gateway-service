@@ -8,14 +8,14 @@ import { Inject, Injectable, Optional } from '@nestjs/common';
 import {
   InternalMessageSentDTO,
   SupportMessageReceivedDTO,
-} from '@omnixys/contracts';
+} from '@omnixys/contracts-ts';
 import {
   IKafkaEventContext,
   KafkaEvent,
   KafkaEventHandler,
   KafkaTopics,
-} from '@omnixys/kafka';
-import { OmnixysLogger } from '@omnixys/logger';
+} from '@omnixys/kafka-ts';
+import { OmnixysLogger } from '@omnixys/logger-ts';
 import { PubSubEngine } from 'graphql-subscriptions';
 
 @KafkaEventHandler('notification')

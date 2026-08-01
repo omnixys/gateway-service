@@ -12,7 +12,7 @@ import {
   Res,
   ForbiddenException,
 } from '@nestjs/common';
-import { ContextAccessor } from '@omnixys/context';
+import { ContextAccessor } from '@omnixys/context-ts';
 import { isUUID } from 'class-validator';
 import type { FastifyReply } from 'fastify';
 
@@ -219,8 +219,12 @@ function allowedOrigins(): Set<string> {
 }
 
 function gatewayEnvironment(): 'development' | 'staging' | 'production' {
-  if (env.NODE_ENV === 'production') return 'production';
-  if (env.NODE_ENV === 'staging') return 'staging';
+  if (env.NODE_ENV === 'production') {
+    return 'production';
+  }
+  if (env.NODE_ENV === 'staging') {
+    return 'staging';
+  }
   return 'development';
 }
 

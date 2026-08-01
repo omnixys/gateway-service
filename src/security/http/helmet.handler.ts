@@ -24,7 +24,7 @@
 
 import helmet from '@fastify/helmet';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { getLogger } from '@omnixys/logger';
+import { getLogger } from '@omnixys/logger-ts';
 
 const logger = getLogger('HelmetHandler');
 

@@ -7,10 +7,10 @@ The Gateway is the Omnixys edge service. It composes the Apollo Federation graph
 - Compose authentication, user, event, invitation, ticket, seat, and notification subgraphs.
 - Forward `authorization`, cookies, `x-request-id`, `x-correlation-id`, `traceparent`, and trusted client metadata.
 - Preserve structured subgraph GraphQL error extensions.
-- Set and clear legacy authentication cookies from compatible GraphQL payloads while token issuance and cookie policy migrate fully to `authentication-service` and `@omnixys/security`.
+- Set and clear legacy authentication cookies from compatible GraphQL payloads while token issuance and cookie policy migrate fully to `authentication-service` and `@omnixys/security-ts`.
 - Publish guarded signup and WhatsApp subscriptions without logging credentials or message bodies.
 
-`@omnixys/context` is the canonical source for request/correlation IDs and trace metadata. Logger and observability use the same scope. The gateway does not issue tokens or make business authorization decisions for subgraphs.
+`@omnixys/context-ts` is the canonical source for request/correlation IDs and trace metadata. Logger and observability use the same scope. The gateway does not issue tokens or make business authorization decisions for subgraphs.
 
 ## Configuration
 
