@@ -3,6 +3,31 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.3.0](https://github.com/omnixys/gateway-service/compare/v3.2.0...v3.3.0) (2026-08-03)
+
+### Analytics
+
+* **Analytics:** broker browser ingestion tokens ([](https://github.com/omnixys/gateway-service/commit/0df26d615083944e4791799c1c808d3e46fff8ba))
+* **Analytics:** register platform gateway routes ([](https://github.com/omnixys/gateway-service/commit/7bbe595606234eb57469dbcb2a8c1655f2c9697b))
+* **Analytics:** resolve public RSVP token tenants ([](https://github.com/omnixys/gateway-service/commit/18ee68d4628c58f901c1efce35fb27163f55d3c0))
+
+### Errors
+
+* **Errors:** sanitize gateway and subgraph failures ([](https://github.com/omnixys/gateway-service/commit/e0fda9d0cafd1ed2cf507c4f8ed2a66e86681c8a))
+
+### Gateway
+
+* **Gateway:** validate and propagate x-tenant-id with default fallback for public ops ([](https://github.com/omnixys/gateway-service/commit/4fffcd3d3eeba6a0947d5b12e757f85d877fdc25))
+* **Gateway:** rate limit returns 429 and remove internal error diagnostics ([](https://github.com/omnixys/gateway-service/commit/f715aa9df0830d0415d28e51e281b0d56c3f2b19))
+
+### Platform-token
+
+* **Platform-token:** verify platform JWKS and validate x-tenant-id via tenant gRPC ([](https://github.com/omnixys/gateway-service/commit/2648b08f10fa8e95f6c4744ec1034d7f23c5162d))
+
+### Tenant
+
+* **Tenant:** verify x-tenant-id header, remove legacy tenant client ([](https://github.com/omnixys/gateway-service/commit/aad4536e13d669c2d14cfeb82227c52b1cb446d3))
+
 ## [3.2.0](https://github.com/omnixys/gateway-service/compare/v3.1.1...v3.2.0) (2026-07-28)
 
 ### Gateway
