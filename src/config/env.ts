@@ -18,23 +18,41 @@
 import 'dotenv/config';
 import process from 'node:process';
 
-const MAX_TIMER_MS = 2_147_483_647;
-
-function positiveTimerMs(key: string, fallback: number): number {
-  const parsed = Number(process.env[key] ?? fallback);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return fallback;
-  }
-  return Math.min(Math.floor(parsed), MAX_TIMER_MS);
+type EnvValue = string | number | boolean;
+interface GetEnvOptions<T extends EnvValue = string> {
+  required?: boolean;
+  transform?: (value: string) => T;
 }
 
-function secret(key: string, fallback: string): string {
-  const value = process.env[key];
-  if (!value && process.env.NODE_ENV === 'production') {
-    throw new Error(`[ENV] Missing required env: ${key}`);
+function getEnv(
+  key: string,
+  fallback?: string,
+  options?: GetEnvOptions<string>,
+): string;
+function getEnv<T extends EnvValue>(
+  key: string,
+  fallback: string,
+  options: GetEnvOptions<T> & { transform: (value: string) => T },
+): T;
+function getEnv(
+  key: string,
+  fallback?: string,
+  options?: GetEnvOptions,
+): EnvValue {
+  const raw = process.env[key];
+  if (!raw) {
+    if (options?.required && process.env.NODE_ENV === 'production') {
+      throw new Error(`[ENV] Missing required env: ${key}`);
+    }
+    return options?.transform && fallback !== undefined
+      ? options.transform(fallback)
+      : (fallback ?? '');
   }
-  return value ?? fallback;
+  return options?.transform ? options.transform(raw) : raw;
 }
+
+const toBool = (value: string): boolean => value === 'true';
+const toNumber = (value: string): number => Number(value);
 
 /**
  * Environment variable configuration for the Node-based server.
@@ -48,104 +66,132 @@ function secret(key: string, fallback: string): string {
  * - Booleans are converted correctly from "true"/"false" strings.
  */
 export const env = {
-  /**
-   * Environment type:
-   * - `production` → Cloud/Production mode
-   * - `development` → Local development
-   * - `test` → Test execution
-   */
-  NODE_ENV: process.env.NODE_ENV ?? 'development',
-
-  SCHEMA_TARGET: process.env.SCHEMA_TARGET ?? 'true',
-
-  /** Default log settings */
-  LOG_DEFAULT: process.env.LOG_DEFAULT === 'true',
-  LOG_DIRECTORY: process.env.LOG_DIRECTORY ?? 'log',
-  LOG_FILE_DEFAULT_NAME: process.env.LOG_FILE_DEFAULT_NAME ?? 'server.log',
-  LOG_PRETTY: process.env.LOG_PRETTY === 'true',
-  LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
-
-  /** HTTPS enable flag */
-  HTTPS: process.env.HTTPS === 'true',
-
-  /** Path to key/certificate files */
-  KEYS_PATH: process.env.KEYS_PATH ?? './keys',
-
-  /** Tempo tracing endpoint */
-  TEMPO_URI:
-    process.env.OTEL_EXPORTER_OTLP_ENDPOINT ??
-    process.env.TEMPO_URI ??
-    'http://localhost:4318',
-
-  /** Port on which the Node/NestJS server runs */
-  PORT: Number(process.env.PORT ?? 4000),
-  SUPERGRAPH_RETRY_INITIAL_MS: positiveTimerMs(
-    'SUPERGRAPH_RETRY_INITIAL_MS',
-    1_000,
+  AUTHENTICATION_URI: getEnv(
+    'AUTHENTICATION_URI',
+    'http://localhost:7501/graphql',
   ),
-  SUPERGRAPH_RETRY_MAX_MS: positiveTimerMs('SUPERGRAPH_RETRY_MAX_MS', 10_000),
-  COOKIE_SECRET: secret('COOKIE_SECRET', 'omnixys-development-secret'),
+  EVENT_URI: getEnv('EVENT_URI', 'http://localhost:7406/graphql'),
+  INVITATION_URI: getEnv('INVITATION_URI', 'http://localhost:7407/graphql'),
+  INVITATION_ANALYTICS_TENANT_URI: getEnv(
+    'INVITATION_ANALYTICS_TENANT_URI',
+    'http://localhost:7407/internal/analytics/tenant',
+  ),
+  TICKET_URI: getEnv('TICKET_URI', 'http://localhost:7408/graphql'),
+  NOTIFICATION_URI: getEnv('NOTIFICATION_URI', 'http://localhost:3005/graphql'),
+  USER_URI: getEnv('USER_URI', 'http://localhost:7402/graphql'),
+  SEAT_URI: getEnv('SEAT_URI', 'http://localhost:7409/graphql'),
+  ADDRESS_URI: getEnv('ADDRESS_URI', 'http://localhost:7004/graphql'),
+  CHAT_URI: getEnv('CHAT_URI', 'http://localhost:8001/graphql'),
+  COMMUNICATION_GATEWAY_URI: getEnv(
+    'COMMUNICATION_GATEWAY_URI',
+    'http://localhost:8002/graphql',
+  ),
+  ANALYTICS_URI: getEnv('ANALYTICS_URI', 'http://localhost:7410/graphql'),
+  TENANT_URI: getEnv('TENANT_URI', 'http://localhost:7502/graphql'),
+  DEFAULT_TENANT_ID: getEnv('DEFAULT_TENANT_ID', ''),
 
-  /** Keycloak / OAuth client configuration */
-  KC_CLIENT_SECRET: process.env.KC_CLIENT_SECRET ?? '',
-  KC_URL: process.env.KC_URL ?? 'http://localhost:18080/auth',
-  KC_REALM: process.env.KC_REALM ?? 'camunda-platform',
-  KC_CLIENT_ID: process.env.KC_CLIENT_ID ?? 'camunda-identity',
-  KC_ADMIN_USERNAME: process.env.KC_ADMIN_USERNAME ?? 'admin',
-  KC_ADMIN_PASSWORD: process.env.KC_ADMIN_PASSWORD ?? 'admin',
+  ANALYTICS_INGESTION_URI: getEnv(
+    'ANALYTICS_INGESTION_URI',
+    'http://localhost:7410/v1/analytics/batch',
+  ),
+  ANALYTICS_TOKEN_URI: getEnv(
+    'ANALYTICS_TOKEN_URI',
+    'http://localhost:7410/v1/analytics/tokens',
+  ),
+  ANALYTICS_FLAGS_URI: getEnv(
+    'ANALYTICS_FLAGS_URI',
+    'http://localhost:7410/v1/analytics/flags/evaluate',
+  ),
 
-  /** Kafka configuration */
-  KAFKA_BROKER: process.env.KAFKA_BROKER ?? 'localhost:9092',
-  SERVICE: process.env.SERVICE ?? 'SERVICE',
+  NODE_ENV: getEnv('NODE_ENV', 'development'),
+  PORT: getEnv('PORT', '4000', { transform: toNumber }),
+  SERVICE: getEnv('SERVICE', 'user'),
 
-  /** Health endpoints */
-  KEYCLOAK_HEALTH_URL: process.env.KEYCLOAK_HEALTH_URL ?? '',
-  TEMPO_HEALTH_URL: process.env.TEMPO_HEALTH_URL ?? '',
-  PROMETHEUS_HEALTH_URL: process.env.PROMETHEUS_HEALTH_URL ?? '',
+  SCHEMA_TARGET: getEnv('SCHEMA_TARGET', 'true'),
+  HTTPS: getEnv('HTTPS', 'false', { transform: toBool }),
+  KEYS_PATH: getEnv('KEYS_PATH', './keys'),
 
-  PC_JWE_KEY: process.env.PC_JWE_KEY ?? '',
-  PC_TTL_SEC: Number(process.env.PC_TTL_SEC ?? 60 * 60 * 24 * 30),
-  INTERNAL_GATEWAY_TOKEN: secret(
+  LOG_DEFAULT: getEnv('LOG_DEFAULT', 'false', { transform: toBool }),
+  LOG_DIRECTORY: getEnv('LOG_DIRECTORY', 'log'),
+  LOG_FILE_DEFAULT_NAME: getEnv('LOG_FILE_DEFAULT_NAME', 'server.log'),
+  LOG_PRETTY: getEnv('LOG_PRETTY', 'false', { transform: toBool }),
+  LOG_LEVEL: getEnv('LOG_LEVEL', 'info'),
+  LOG_BATCH_ENABLE: getEnv('LOG_BATCH_ENABLE', 'true', { transform: toBool }),
+  LOG_BATCH_MAX_SIZE: getEnv('LOG_BATCH_MAX_SIZE', '50', {
+    transform: toNumber,
+  }),
+  LOG_BATCH_FLUSH_INTERVAL: getEnv('LOG_BATCH_FLUSH_INTERVAL', '2000', {
+    transform: toNumber,
+  }),
+
+  OTEL_URI: getEnv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://localhost:4318'),
+  OTEL_TRANSPORT_MODE: getEnv('OTEL_TRANSPORT_MODE', 'http', {
+    required: true,
+  }),
+  OTEL_SAMPLING_RATIO: getEnv('OTEL_SAMPLING_RATIO', '1', {
+    transform: toNumber,
+  }),
+  TEMPO_URI: getEnv('TEMPO_URI', 'http://localhost:4318'),
+  PROMETHEUS_ENABLE: getEnv('PROMETHEUS_ENABLE', 'true', { transform: toBool }),
+  PROMETHEUS_PORT: getEnv('PROMETHEUS_PORT', '9464', { transform: toNumber }),
+
+  KAFKA_BROKER: getEnv('KAFKA_BROKER', 'localhost:9092'),
+  KAFKA_RETRY: getEnv('KAFKA_RETRY', '5', { transform: toNumber }),
+  KAFKA_IDEMPOTENCY_ENABLE: getEnv('KAFKA_IDEMPOTENCY_ENABLE', 'true', {
+    transform: toBool,
+  }),
+  KAFKA_IDEMPOTENCY_TTL: getEnv('KAFKA_IDEMPOTENCY_TTL', '86400', {
+    transform: toNumber,
+  }),
+
+  VALKEY_URL: getEnv('VALKEY_URL', 'valkey://localhost:6380'),
+  VALKEY_PASSWORD: getEnv('VALKEY_PASSWORD', '', { required: true }),
+
+  RATE_LIMIT_ENABLE: getEnv('RATE_LIMIT_ENABLE', 'true', { transform: toBool }),
+  RATE_LIMIT_REQUESTS: getEnv('RATE_LIMIT_REQUESTS', '100', {
+    transform: toNumber,
+  }),
+  RATE_LIMIT_WINDOW: getEnv('RATE_LIMIT_WINDOW', '60000', {
+    transform: toNumber,
+  }),
+
+  KC_CLIENT_SECRET: getEnv('KC_CLIENT_SECRET', '', { required: true }),
+  KC_URL: getEnv('KC_URL', 'http://localhost:18080/auth'),
+  KC_REALM: getEnv('KC_REALM', 'camunda-platform'),
+  KC_CLIENT_ID: getEnv('KC_CLIENT_ID', 'camunda-identity'),
+  KC_ADMIN_USERNAME: getEnv('KC_ADMIN_USERNAME', 'admin'),
+  KC_ADMIN_PASSWORD: getEnv('KC_ADMIN_PASSWORD', 'admin'),
+
+  COOKIE_SECRET: getEnv('COOKIE_SECRET', 'omnixys-development-secret', {
+    required: true,
+  }),
+  INTERNAL_GATEWAY_TOKEN: getEnv(
     'INTERNAL_GATEWAY_TOKEN',
     'dev-internal-gateway-token',
+    { required: true },
   ),
-  VALKEY_URL: process.env.VALKEY_URL ?? 'valkey://localhost:6380',
-  VALKEY_PASSWORD: secret('VALKEY_PASSWORD', ''),
-
-  AUTHENTICATION_URI:
-    process.env.AUTHENTICATION_URI ?? 'http://localhost:7501/graphql',
-  EVENT_URI: process.env.EVENT_URI ?? 'http://localhost:7406/graphql',
-  INVITATION_URI: process.env.INVITATION_URI ?? 'http://localhost:7407/graphql',
-  INVITATION_ANALYTICS_TENANT_URI:
-    process.env.INVITATION_ANALYTICS_TENANT_URI ??
-    'http://localhost:7407/internal/analytics/tenant',
-  TICKET_URI: process.env.TICKET_URI ?? 'http://localhost:7408/graphql',
-  NOTIFICATION_URI:
-    process.env.NOTIFICATION_URI ?? 'http://localhost:3005/graphql',
-  USER_URI: process.env.USER_URI ?? 'http://localhost:7402/graphql',
-  SEAT_URI: process.env.SEAT_URI ?? 'http://localhost:7409/graphql',
-  ADDRESS_URI: process.env.ADDRESS_URI ?? 'http://localhost:7004/graphql',
-  CHAT_URI: process.env.CHAT_URI ?? 'http://localhost:8001/graphql',
-  COMMUNICATION_GATEWAY_URI:
-    process.env.COMMUNICATION_GATEWAY_URI ?? 'http://localhost:8002/graphql',
-  ANALYTICS_URI: process.env.ANALYTICS_URI ?? 'http://localhost:7410/graphql',
-  ANALYTICS_INGESTION_URI:
-    process.env.ANALYTICS_INGESTION_URI ??
-    'http://localhost:7410/v1/analytics/batch',
-  ANALYTICS_TOKEN_URI:
-    process.env.ANALYTICS_TOKEN_URI ??
-    'http://localhost:7410/v1/analytics/tokens',
-  ANALYTICS_FLAGS_URI:
-    process.env.ANALYTICS_FLAGS_URI ??
-    'http://localhost:7410/v1/analytics/flags/evaluate',
-  CHAT_SERVICE_API_KEY: secret(
+  ENCRYPTION_KEY: getEnv('ENCRYPTION_KEY', '', { required: true }),
+  CHAT_SERVICE_API_KEY: getEnv(
     'CHAT_SERVICE_API_KEY',
     'omnixys-chat-local-key',
+    { required: true },
   ),
-  COMMUNICATION_GATEWAY_API_KEY: secret(
+  COMMUNICATION_GATEWAY_API_KEY: getEnv(
     'COMMUNICATION_GATEWAY_API_KEY',
     'omnixys-gateway-local-key',
+    { required: true },
   ),
+
+  KEYCLOAK_HEALTH_URL: getEnv('KEYCLOAK_HEALTH_URL', ''),
+  TEMPO_HEALTH_URL: getEnv('TEMPO_HEALTH_URL', ''),
+  PROMETHEUS_HEALTH_URL: getEnv('PROMETHEUS_HEALTH_URL', ''),
+
+  SUPERGRAPH_RETRY_INITIAL_MS: getEnv('SUPERGRAPH_RETRY_INITIAL_MS', '1000', {
+    transform: toNumber,
+  }),
+  SUPERGRAPH_RETRY_MAX_MS: getEnv('SUPERGRAPH_RETRY_MAX_MS', '10000', {
+    transform: toNumber,
+  }),
 } as const;
 
 // /**

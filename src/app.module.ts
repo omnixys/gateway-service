@@ -6,8 +6,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // /Users/gentlebookpro/Projekte/checkpoint/backend/gateway/src/app.module.ts
-import { BannerService } from './banner.service.js';
 import { AnalyticsIngestionController } from './analytics/analytics-ingestion.controller.js';
+import { BannerService } from './config/banner.service.js';
 import { env } from './config/env.js';
 import { RetryingSupergraphManager } from './graphql/retrying-supergraph-manager.js';
 import { HandlerModule } from './handlers/handler.module.js';
@@ -20,20 +20,13 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ValkeyModule } from '@omnixys/cache-ts';
 import { ContextAccessor, ContextModule } from '@omnixys/context-ts';
 import { createGraphQLFormatError } from '@omnixys/graphql-ts';
-import { KafkaModule } from '@omnixys/kafka-ts';
 import { OmnixysHttpModule } from '@omnixys/http-ts';
+import { KafkaModule } from '@omnixys/kafka-ts';
 import { getLogger, LoggerModule } from '@omnixys/logger-ts';
 import { ObservabilityModule } from '@omnixys/observability-ts';
 import { SecurityModule } from '@omnixys/security-ts';
 
 const {
-  SERVICE,
-  KAFKA_BROKER,
-  TEMPO_URI,
-  VALKEY_URL,
-  VALKEY_PASSWORD,
-  KC_URL,
-  KC_REALM,
   INTERNAL_GATEWAY_TOKEN,
 
   AUTHENTICATION_URI,
@@ -46,9 +39,36 @@ const {
   ADDRESS_URI,
   CHAT_URI,
   ANALYTICS_URI,
+  TENANT_URI,
   COMMUNICATION_GATEWAY_API_KEY,
   SUPERGRAPH_RETRY_INITIAL_MS,
   SUPERGRAPH_RETRY_MAX_MS,
+
+  SERVICE,
+  NODE_ENV,
+
+  KC_URL,
+  KC_REALM,
+
+  KAFKA_BROKER,
+  KAFKA_IDEMPOTENCY_ENABLE,
+  KAFKA_IDEMPOTENCY_TTL,
+  KAFKA_RETRY,
+
+  OTEL_URI,
+  OTEL_TRANSPORT_MODE,
+  OTEL_SAMPLING_RATIO,
+  PROMETHEUS_ENABLE,
+  PROMETHEUS_PORT,
+
+  VALKEY_URL,
+  VALKEY_PASSWORD,
+
+  LOG_BATCH_ENABLE,
+  LOG_BATCH_FLUSH_INTERVAL,
+  LOG_BATCH_MAX_SIZE,
+
+  DEFAULT_TENANT_ID,
 } = env;
 
 const federationLogger = getLogger('GatewayFederation');
@@ -65,7 +85,7 @@ export interface AuthToken {
 export type SameSite = 'lax' | 'strict' | 'none';
 
 // Basis für alle Cookies
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = NODE_ENV === 'production';
 
 export const timerCookieBase = isProd
   ? `Path=/; SameSite=none; Secure; Domain=.omnixys.com`
@@ -175,8 +195,7 @@ export const handleAuth = (input: any): GatewayRequestContext => {
   };
 };
 
-const UUID_V4_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function validUuidHeader(value: unknown): string | null {
   const raw = headerValue(value);
@@ -228,6 +247,8 @@ export function applyGatewayHeaders(
   }
   if (context.tenantId) {
     headers.set('x-tenant-id', context.tenantId);
+  } else if (DEFAULT_TENANT_ID) {
+    headers.set('x-tenant-id', DEFAULT_TENANT_ID);
   }
   if (context.meta?.ip) {
     headers.set('x-forwarded-for', context.meta.ip);
@@ -393,6 +414,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
               { name: 'address', url: ADDRESS_URI },
               { name: 'chat', url: CHAT_URI },
               { name: 'analytics', url: ANALYTICS_URI },
+              { name: 'tenant', url: TENANT_URI },
             ],
           }),
           {
@@ -433,22 +455,24 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
     KafkaModule.forRoot({
       clientId: SERVICE,
       brokers: [KAFKA_BROKER],
-      groupId: `${SERVICE}-consumer`,
+      groupId: `${SERVICE}-group`,
       serviceName: SERVICE,
+      retry: { maxRetries: KAFKA_RETRY },
+      idempotency: { enabled: KAFKA_IDEMPOTENCY_ENABLE, ttlSeconds: KAFKA_IDEMPOTENCY_TTL },
     }),
 
     ObservabilityModule.forRoot({
       serviceName: SERVICE,
 
       otel: {
-        endpoint: TEMPO_URI,
-        transport: 'http',
-        samplingRatio: 1,
+        endpoint: OTEL_URI,
+        transport: OTEL_TRANSPORT_MODE as 'http' | 'grpc',
+        samplingRatio: OTEL_SAMPLING_RATIO,
       },
 
       metrics: {
-        port: 9464,
-        enabled: true,
+        port: PROMETHEUS_PORT,
+        enabled: PROMETHEUS_ENABLE,
       },
     }),
 
@@ -457,9 +481,9 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
       registerGlobalInterceptor: true,
 
       batch: {
-        enabled: true,
-        maxSize: 50,
-        flushInterval: 2000,
+        enabled: LOG_BATCH_ENABLE,
+        maxSize: LOG_BATCH_MAX_SIZE,
+        flushInterval: LOG_BATCH_FLUSH_INTERVAL,
       },
     }),
   ],

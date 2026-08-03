@@ -20,10 +20,12 @@ import { type HttpsOptions } from '@nestjs/common/interfaces/external/https-opti
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const tlsDir = resolve(env.KEYS_PATH);
+const { KEYS_PATH, HTTPS } = env;
+
+const tlsDir = resolve(KEYS_PATH);
 
 // public/private keys und Zertifikat fuer TLS
-export const httpsOptions: HttpsOptions | undefined = env.HTTPS
+export const httpsOptions: HttpsOptions | undefined = HTTPS
   ? {
       key: readFileSync(resolve(tlsDir, 'key.pem')),
       cert: readFileSync(resolve(tlsDir, 'certificate.crt')),

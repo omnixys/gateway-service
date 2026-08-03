@@ -2,15 +2,17 @@ import { env } from '../config/env.js';
 import { Injectable } from '@nestjs/common';
 import { ErrorCode, FrameworkException } from '@omnixys/contracts-ts';
 
+const { CHAT_URI, CHAT_SERVICE_API_KEY } = env;
+
 @Injectable()
 export class ChatAccessService {
   async assertParticipant(conversationId: string, userId: string): Promise<void> {
-    const baseUrl = new URL(env.CHAT_URI).origin;
+    const baseUrl = new URL(CHAT_URI).origin;
     let response: Response;
     try {
       response = await fetch(
         `${baseUrl}/api/v1/internal/conversations/${encodeURIComponent(conversationId)}/participants/${encodeURIComponent(userId)}`,
-        { headers: { 'x-api-key': env.CHAT_SERVICE_API_KEY } },
+        { headers: { 'x-api-key': CHAT_SERVICE_API_KEY } },
       );
     } catch (cause) {
       throw new FrameworkException(ErrorCode.DEPENDENCY_UNAVAILABLE, {

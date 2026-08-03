@@ -16,6 +16,15 @@ import { ContextAccessor } from '@omnixys/context-ts';
 import { isUUID } from 'class-validator';
 import type { FastifyReply } from 'fastify';
 
+const {
+  INTERNAL_GATEWAY_TOKEN,
+  INVITATION_ANALYTICS_TENANT_URI,
+  ANALYTICS_FLAGS_URI,
+  ANALYTICS_INGESTION_URI,
+  ANALYTICS_TOKEN_URI,
+  NODE_ENV,
+} = env;
+
 const FORWARDED_HEADERS = [
   'authorization',
   'x-request-id',
@@ -57,9 +66,7 @@ export class AnalyticsIngestionController {
   ): Promise<unknown> {
     const context = ContextAccessor.get();
     let tenantId = context?.tenant?.verified ? context.tenant.tenantId : undefined;
-    if (!tenantId) {
-      tenantId = await resolvePublicTenant(body?.publicReference);
-    }
+    tenantId ??= await resolvePublicTenant(body?.publicReference);
     const origin = firstHeader(incomingHeaders.origin);
     if (!origin || !allowedOrigins().has(origin)) {
       throw new ForbiddenException({
@@ -67,10 +74,10 @@ export class AnalyticsIngestionController {
         message: 'Origin is not allowed for analytics',
       });
     }
-    return proxyJson(env.ANALYTICS_TOKEN_URI, {
+    return proxyJson(ANALYTICS_TOKEN_URI, {
       headers: {
         'content-type': 'application/json',
-        'x-internal-token': env.INTERNAL_GATEWAY_TOKEN,
+        'x-internal-token': INTERNAL_GATEWAY_TOKEN,
         'x-tenant-id': tenantId,
       },
       body: {
@@ -94,7 +101,7 @@ export class AnalyticsIngestionController {
         message: 'Origin is not allowed for analytics',
       });
     }
-    return proxyJson(env.ANALYTICS_FLAGS_URI, {
+    return proxyJson(ANALYTICS_FLAGS_URI, {
       headers: {
         authorization: firstHeader(incomingHeaders.authorization) ?? '',
         'content-type': 'application/json',
@@ -122,7 +129,7 @@ export class AnalyticsIngestionController {
 
     let response: Response;
     try {
-      response = await fetch(env.ANALYTICS_INGESTION_URI, {
+      response = await fetch(ANALYTICS_INGESTION_URI, {
         method: 'POST',
         headers,
         body: JSON.stringify(body),
@@ -163,10 +170,10 @@ async function resolvePublicTenant(
       message: 'A verified tenant context or public RSVP reference is required',
     });
   }
-  const result = await proxyJson(env.INVITATION_ANALYTICS_TENANT_URI, {
+  const result = await proxyJson(INVITATION_ANALYTICS_TENANT_URI, {
     headers: {
       'content-type': 'application/json',
-      'x-internal-token': env.INTERNAL_GATEWAY_TOKEN,
+      'x-internal-token': INTERNAL_GATEWAY_TOKEN,
     },
     body: reference,
   });
@@ -219,10 +226,10 @@ function allowedOrigins(): Set<string> {
 }
 
 function gatewayEnvironment(): 'development' | 'staging' | 'production' {
-  if (env.NODE_ENV === 'production') {
+  if (NODE_ENV === 'production') {
     return 'production';
   }
-  if (env.NODE_ENV === 'staging') {
+  if (NODE_ENV === 'staging') {
     return 'staging';
   }
   return 'development';

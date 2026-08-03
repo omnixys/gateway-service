@@ -132,11 +132,30 @@ async function bootstrap(): Promise<void> {
    *
    * Schützt vor Brute-Force-Angriffen und DoS.
    * Besonders wichtig für Auth- oder Login-Routen.
+   *
+   * Konfiguration über ENV (RATE_LIMIT_ENABLE / RATE_LIMIT_REQUESTS /
+   * RATE_LIMIT_WINDOW). Der `errorResponseBuilder` liefert einen
+   * strukturierten Fehler (code + httpStatus + message), damit der globale
+   * Exception-Filter korrekt 429 RATE_LIMIT_EXCEEDED zurückgibt — sonst
+   * würde der Fastify-Fehler als 500 GATEWAY_INTERNAL_ERROR gemappt.
    */
-  await app.register(rateLimit, {
-    max: 100, // max. Requests pro Minute
-    timeWindow: '1 minute',
-  });
+  if (env.RATE_LIMIT_ENABLE) {
+    await app.register(rateLimit, {
+      max: env.RATE_LIMIT_REQUESTS, // max. Requests pro Window
+      timeWindow: env.RATE_LIMIT_WINDOW,
+      errorResponseBuilder: (_req: unknown, context: any) => {
+        const err = new Error(
+          `Rate limit exceeded, retry in ${context?.after ?? 60} seconds`,
+        ) as Error & {
+          code?: string;
+          httpStatus?: number;
+        };
+        err.code = 'RATE_LIMIT_EXCEEDED';
+        err.httpStatus = 429;
+        return err;
+      },
+    });
+  }
 
   // ======================================================
   // ⚙️ CONFIGURATION
