@@ -22,6 +22,8 @@ const {
   ANALYTICS_FLAGS_URI,
   ANALYTICS_INGESTION_URI,
   ANALYTICS_TOKEN_URI,
+  ANALYTICS_CHECKPOINT_ORIGINS,
+  ANALYTICS_WEDDING_ORIGINS,
   NODE_ENV,
 } = env;
 
@@ -40,14 +42,64 @@ export const CHECKPOINT_ANALYTICS_EVENTS = [
   '$pageview',
   'ConversationOpened',
   'InvitationOpened',
+  'LoginFailed',
   'LoginStarted',
+  'LoginSucceeded',
+  'MessageSendFailed',
   'MessageSendStarted',
+  'MessageSent',
   'QrScanStarted',
   'RsvpStarted',
+  'RsvpCompleted',
+  'RsvpFailed',
+  'SeatChangeCompleted',
+  'SeatChangeFailed',
   'SeatChangeStarted',
+  'TicketDownloadFailed',
   'TicketDownloadStarted',
   'TicketDownloaded',
 ] as const;
+
+export const WEDDING_ANALYTICS_EVENTS = [
+  '$pageview',
+  'WeddingChapterSelected',
+  'WeddingExperienceCompleted',
+  'WeddingExperienceReady',
+  'WeddingGuideItemOpened',
+  'WeddingHotelLinkClicked',
+  'WeddingLanguageChanged',
+  'WeddingMapInteracted',
+  'WeddingRsvpClicked',
+  'WeddingRsvpFormStarted',
+  'WeddingRsvpFormSubmitted',
+  'WeddingRsvpFormValidationFailed',
+  'WeddingSectionViewed',
+  'WeddingVenueRouteClicked',
+  'WeddingWebVitalMeasured',
+] as const;
+
+type AnalyticsApplication = 'checkpoint' | 'wedding';
+
+const ANALYTICS_APPLICATIONS: ReadonlyArray<{
+  application: AnalyticsApplication;
+  origins: ReadonlySet<string>;
+  events: readonly string[];
+}> = [
+  {
+    application: 'checkpoint',
+    origins: origins(ANALYTICS_CHECKPOINT_ORIGINS),
+    events: CHECKPOINT_ANALYTICS_EVENTS,
+  },
+  {
+    application: 'wedding',
+    origins: origins(ANALYTICS_WEDDING_ORIGINS),
+    events: WEDDING_ANALYTICS_EVENTS,
+  },
+];
+
+function origins(value: string): ReadonlySet<string> {
+  return new Set(value.split(',').map((origin) => origin.trim()).filter(Boolean));
+}
 
 interface AnalyticsTokenRequest {
   publicReference?: {
@@ -64,16 +116,17 @@ export class AnalyticsIngestionController {
     incomingHeaders: Record<string, string | string[] | undefined>,
     @Body() body?: AnalyticsTokenRequest,
   ): Promise<unknown> {
-    const context = ContextAccessor.get();
-    let tenantId = context?.tenant?.verified ? context.tenant.tenantId : undefined;
-    tenantId ??= await resolvePublicTenant(body?.publicReference);
     const origin = firstHeader(incomingHeaders.origin);
-    if (!origin || !allowedOrigins().has(origin)) {
+    const application = origin ? analyticsApplication(origin) : undefined;
+    if (!origin || !application || !allowedOrigins().has(origin)) {
       throw new ForbiddenException({
         code: 'ANALYTICS_ORIGIN_FORBIDDEN',
         message: 'Origin is not allowed for analytics',
       });
     }
+    const context = ContextAccessor.get();
+    let tenantId = context?.tenant?.verified ? context.tenant.tenantId : undefined;
+    tenantId ??= await resolvePublicTenant(body?.publicReference);
     return proxyJson(ANALYTICS_TOKEN_URI, {
       headers: {
         'content-type': 'application/json',
@@ -81,9 +134,10 @@ export class AnalyticsIngestionController {
         'x-tenant-id': tenantId,
       },
       body: {
+        application: application.application,
         origin,
         environment: gatewayEnvironment(),
-        events: CHECKPOINT_ANALYTICS_EVENTS,
+        events: application.events,
       },
     });
   }
@@ -154,6 +208,10 @@ export class AnalyticsIngestionController {
     reply.status(response.status);
     return payload;
   }
+}
+
+function analyticsApplication(origin: string) {
+  return ANALYTICS_APPLICATIONS.find((candidate) => candidate.origins.has(origin));
 }
 
 async function resolvePublicTenant(

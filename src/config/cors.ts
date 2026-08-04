@@ -16,6 +16,12 @@
  */
 
 import type { FastifyCorsOptions } from '@fastify/cors';
+import { env } from './env.js';
+
+const analyticsOrigins = [
+  ...env.ANALYTICS_CHECKPOINT_ORIGINS.split(','),
+  ...env.ANALYTICS_WEDDING_ORIGINS.split(','),
+].map((origin) => origin.trim()).filter(Boolean);
 
 /**
  * @file cors.ts
@@ -59,9 +65,8 @@ export const corsOptions: FastifyCorsOptions = {
     'https://www.api-dev.omnixys.com',
     'https://www.api.omnixys.com',
     'https://nexys.omnixys.com',
-    'http://localhost:3000',
+    ...analyticsOrigins,
     'https://studio.apollographql.com',
-    'https://checkpoint.omnixys.com',
   ],
 
   // ======================================================

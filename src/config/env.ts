@@ -102,6 +102,14 @@ export const env = {
     'ANALYTICS_FLAGS_URI',
     'http://localhost:7410/v1/analytics/flags/evaluate',
   ),
+  ANALYTICS_CHECKPOINT_ORIGINS: getEnv(
+    'ANALYTICS_CHECKPOINT_ORIGINS',
+    'https://checkpoint.omnixys.com,http://localhost:3000',
+  ),
+  ANALYTICS_WEDDING_ORIGINS: getEnv(
+    'ANALYTICS_WEDDING_ORIGINS',
+    'https://cgr.omnixys.com,http://localhost:3001',
+  ),
 
   NODE_ENV: getEnv('NODE_ENV', 'development'),
   PORT: getEnv('PORT', '4000', { transform: toNumber }),

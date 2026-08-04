@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { BadGatewayException } from '@nestjs/common';
 import { AnalyticsIngestionController } from '../../dist/analytics/analytics-ingestion.controller.js';
-import { ContextAccessor } from '@omnixys/context';
+import { ContextAccessor } from '@omnixys/context-ts';
 
 test('analytics batch proxy preserves API-key and correlation headers', async (t) => {
   const originalFetch = globalThis.fetch;
@@ -83,6 +83,7 @@ test('analytics token broker uses only the verified tenant and fixed allowlist',
     assert.equal(init.headers['x-internal-token'].length > 0, true);
     const body = JSON.parse(init.body);
     assert.equal(body.origin, 'https://checkpoint.omnixys.com');
+    assert.equal(body.application, 'checkpoint');
     assert.equal(body.events.includes('LoginStarted'), true);
     assert.equal(body.events.includes('arbitrary-client-event'), false);
     return new Response(JSON.stringify({ token: 'browser-token', expiresIn: 900 }), {
@@ -106,6 +107,39 @@ test('analytics token broker uses only the verified tenant and fixed allowlist',
       }),
   );
   assert.equal(result.token, 'browser-token');
+});
+
+test('wedding token broker selects the wedding source and fixed allowlist', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+  const tenantId = '00000000-0000-4000-8000-000000000001';
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(init.body);
+    assert.equal(body.application, 'wedding');
+    assert.equal(body.origin, 'https://cgr.omnixys.com');
+    assert.equal(body.events.includes('WeddingRsvpClicked'), true);
+    assert.equal(body.events.includes('LoginStarted'), false);
+    return new Response(JSON.stringify({ token: 'wedding-browser-token' }), { status: 200 });
+  };
+
+  const result = await ContextAccessor.run(
+    {
+      requestId: 'wedding-token',
+      correlationId: 'wedding-token',
+      startedAtEpochMs: Date.now(),
+      tenant: { tenantId, source: 'jwt-claim', verified: true },
+      client: {},
+      transport: {},
+      trace: {},
+    },
+    () =>
+      new AnalyticsIngestionController().issueToken({
+        origin: 'https://cgr.omnixys.com',
+      }),
+  );
+  assert.equal(result.token, 'wedding-browser-token');
 });
 
 test('public RSVP token broker resolves the tenant through invitation', async (t) => {
@@ -147,5 +181,23 @@ test('public RSVP token broker rejects browser tenant IDs without a reference', 
       {},
     ),
     (error) => error?.getResponse?.().code === 'VERIFIED_TENANT_REQUIRED',
+  );
+});
+
+test('analytics token broker rejects origins outside the application registry', async () => {
+  await assert.rejects(
+    new AnalyticsIngestionController().issueToken({
+      origin: 'https://unknown.example.test',
+    }),
+    (error) => error?.getResponse?.().code === 'ANALYTICS_ORIGIN_FORBIDDEN',
+  );
+});
+
+test('analytics token broker rejects the retired wedding production origin', async () => {
+  await assert.rejects(
+    new AnalyticsIngestionController().issueToken({
+      origin: 'https://wedding.omnixys.com',
+    }),
+    (error) => error?.getResponse?.().code === 'ANALYTICS_ORIGIN_FORBIDDEN',
   );
 });
