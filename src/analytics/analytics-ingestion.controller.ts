@@ -80,11 +80,13 @@ export const WEDDING_ANALYTICS_EVENTS = [
 
 type AnalyticsApplication = 'checkpoint' | 'wedding';
 
-const ANALYTICS_APPLICATIONS: ReadonlyArray<{
+interface AnalyticsApplicationConfig {
   application: AnalyticsApplication;
   origins: ReadonlySet<string>;
   events: readonly string[];
-}> = [
+}
+
+const ANALYTICS_APPLICATIONS: readonly AnalyticsApplicationConfig[] = [
   {
     application: 'checkpoint',
     origins: origins(ANALYTICS_CHECKPOINT_ORIGINS),
@@ -98,7 +100,12 @@ const ANALYTICS_APPLICATIONS: ReadonlyArray<{
 ];
 
 function origins(value: string): ReadonlySet<string> {
-  return new Set(value.split(',').map((origin) => origin.trim()).filter(Boolean));
+  return new Set(
+    value
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+  );
 }
 
 interface AnalyticsTokenRequest {
@@ -210,7 +217,7 @@ export class AnalyticsIngestionController {
   }
 }
 
-function analyticsApplication(origin: string) {
+function analyticsApplication(origin: string): AnalyticsApplicationConfig | undefined {
   return ANALYTICS_APPLICATIONS.find((candidate) => candidate.origins.has(origin));
 }
 

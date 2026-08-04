@@ -71,7 +71,7 @@ export class BannerService implements OnApplicationBootstrap {
     }
 
     for (const section of order) {
-      const entries = groups.get(section)!;
+      const entries = groups.get(section) ?? [];
       if (entries.length === 0) {
         continue;
       }

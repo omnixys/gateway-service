@@ -22,7 +22,9 @@ import compress from '@fastify/compress';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
-import rateLimit from '@fastify/rate-limit';
+import rateLimit, {
+  type errorResponseBuilderContext,
+} from '@fastify/rate-limit';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -143,9 +145,12 @@ async function bootstrap(): Promise<void> {
     await app.register(rateLimit, {
       max: env.RATE_LIMIT_REQUESTS, // max. Requests pro Window
       timeWindow: env.RATE_LIMIT_WINDOW,
-      errorResponseBuilder: (_req: unknown, context: any) => {
+      errorResponseBuilder: (
+        _req: unknown,
+        context: errorResponseBuilderContext,
+      ) => {
         const err = new Error(
-          `Rate limit exceeded, retry in ${context?.after ?? 60} seconds`,
+          `Rate limit exceeded, retry in ${context.after ?? 60} seconds`,
         ) as Error & {
           code?: string;
           httpStatus?: number;

@@ -15,13 +15,15 @@
  * For more information, visit <https://www.gnu.org/licenses/>.
  */
 
-import type { FastifyCorsOptions } from '@fastify/cors';
 import { env } from './env.js';
+import type { FastifyCorsOptions } from '@fastify/cors';
 
 const analyticsOrigins = [
   ...env.ANALYTICS_CHECKPOINT_ORIGINS.split(','),
   ...env.ANALYTICS_WEDDING_ORIGINS.split(','),
-].map((origin) => origin.trim()).filter(Boolean);
+]
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 /**
  * @file cors.ts
