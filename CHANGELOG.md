@@ -3,6 +3,16 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.4.0](https://github.com/omnixys/gateway-service/compare/v3.3.0...v3.4.0) (2026-08-04)
+
+### Cors
+
+* **Cors:** add cors ([](https://github.com/omnixys/gateway-service/commit/ac83a5ea000c6f12fdabb99483f7a93d1a0cdf2d))
+
+### Gateway
+
+* **Gateway:** resolve lint warnings ([](https://github.com/omnixys/gateway-service/commit/faca77afa8ea41ab900c57807f3db0aebb05b95a))
+
 ## [3.3.0](https://github.com/omnixys/gateway-service/compare/v3.2.0...v3.3.0) (2026-08-03)
 
 ### Analytics
