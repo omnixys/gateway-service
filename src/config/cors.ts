@@ -128,6 +128,8 @@ export const corsOptions: FastifyCorsOptions = {
     'x-device',
     'x-platform',
     'x-client-version',
+    'traceparent',
+    'tracestate',
   ],
 
   // ======================================================
