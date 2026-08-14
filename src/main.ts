@@ -33,6 +33,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { OmnixysLogger } from '@omnixys/logger-ts';
 import { registerFastifyTracing } from '@omnixys/observability-ts';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import 'reflect-metadata';
 
 /**
@@ -212,6 +213,54 @@ async function bootstrap(): Promise<void> {
   // ======================================================
   // 🧹 LIFECYCLE & STARTUP
   // ======================================================
+
+  // ======================================================
+  // 🧭 OTLP INGESTION PROXY
+  // ======================================================
+
+  /**
+   * Proxies browser OTLP/HTTP trace exports to the OpenTelemetry collector.
+   *
+   * Frontends (e.g. checkpoint) export to `/otel/v1/traces`; this route forwards
+   * the request to the collector's OTLP HTTP receiver (`env.OTEL_URI`). This keeps
+   * the collector internal-only while still ingesting browser traces.
+   */
+  fastify.post(
+    '/otel/v1/traces',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const chunks: Buffer[] = [];
+        for await (const chunk of request.raw) {
+          chunks.push(chunk as Buffer);
+        }
+        const body = Buffer.concat(chunks);
+        const contentType = request.headers['content-type'];
+        const collectorResponse = await fetch(`${env.OTEL_URI}/v1/traces`, {
+          method: 'POST',
+          headers: contentType ? { 'content-type': String(contentType) } : {},
+          body,
+        });
+        const responseBody = await collectorResponse.text();
+        return reply
+          .status(collectorResponse.status)
+          .header(
+            'content-type',
+            collectorResponse.headers.get('content-type') ??
+              'application/x-protobuf',
+          )
+          .send(responseBody);
+      } catch (error) {
+        logger.error(
+          'OTLP proxy failed',
+          error instanceof Error ? error.message : String(error),
+        );
+        return reply.status(502).send({
+          code: 'OTLP_UNAVAILABLE',
+          message: 'Trace ingestion is unavailable',
+        });
+      }
+    },
+  );
 
   /**
    * Aktiviert „graceful shutdown hooks“.
