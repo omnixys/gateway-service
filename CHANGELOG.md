@@ -3,6 +3,13 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.5.0](https://github.com/omnixys/gateway-service/compare/v3.4.0...v3.5.0) (2026-08-14)
+
+### Gateway
+
+* **Gateway:** proxy /otel/v1/traces to the OTLP collector ([](https://github.com/omnixys/gateway-service/commit/6f41580498df8df4773525ac145e4061ea7d81fb))
+* **Gateway:** allow traceparent/tracestate in CORS allowed headers ([](https://github.com/omnixys/gateway-service/commit/4a8679f3936d78448ed19d6423150297dceaf279))
+
 ## [3.4.0](https://github.com/omnixys/gateway-service/compare/v3.3.0...v3.4.0) (2026-08-04)
 
 ### Cors
