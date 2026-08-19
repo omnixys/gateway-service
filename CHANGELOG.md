@@ -3,6 +3,17 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.5.1](https://github.com/omnixys/gateway-service/compare/v3.5.0...v3.5.1) (2026-08-19)
+
+### Agent
+
+* **Agent:** add repository development instructions ([](https://github.com/omnixys/gateway-service/commit/22fcb78b370578ee48cd3e40f87029fde4bdc743))
+
+### Gateway
+
+* **Gateway:** exclude health endpoints from rate-limit and bump version ([](https://github.com/omnixys/gateway-service/commit/341dcfefac0c6a0f39281f2c8316dcdad7fb7bb0))
+* **Gateway:** replace deprecated rate-limit skip option with allowList ([](https://github.com/omnixys/gateway-service/commit/bf5be0253231b90b7877378502cea81acfcea2b8))
+
 ## [3.5.0](https://github.com/omnixys/gateway-service/compare/v3.4.0...v3.5.0) (2026-08-14)
 
 ### Gateway
