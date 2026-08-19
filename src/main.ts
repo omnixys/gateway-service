@@ -146,7 +146,8 @@ async function bootstrap(): Promise<void> {
     await app.register(rateLimit, {
       max: env.RATE_LIMIT_REQUESTS, // max. Requests pro Window
       timeWindow: env.RATE_LIMIT_WINDOW,
-      skip: (request) => request.url.startsWith('/health'),
+      allowList: (request: { url: string }) =>
+        request.url.startsWith('/health'),
       errorResponseBuilder: (
         _req: unknown,
         context: errorResponseBuilderContext,
