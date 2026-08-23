@@ -9,4 +9,5 @@ dist
 coverage
 log
 *.log
-tsconfig.build.tsbuildinfo
+tsconfig.build.json
+*.tsbuildinfo
