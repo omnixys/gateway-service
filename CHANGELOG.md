@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.5.2](https://github.com/omnixys/gateway-service/compare/v3.5.1...v3.5.2) (2026-08-23)
+
+### Observability
+
+* **Observability:** update dependency ([](https://github.com/omnixys/gateway-service/commit/35c95a77d903d50dc14c033748208b7f919a7b12))
+
 ## [3.5.1](https://github.com/omnixys/gateway-service/compare/v3.5.0...v3.5.1) (2026-08-19)
 
 ### Agent
