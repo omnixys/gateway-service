@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.5.3](https://github.com/omnixys/gateway-service/compare/v3.5.2...v3.5.3) (2026-08-23)
+
+### Logger
+
+* **Logger:** fix terminal logger ([](https://github.com/omnixys/gateway-service/commit/334309ecb58d72b777024bb8314810859307d697))
+
 ## [3.5.2](https://github.com/omnixys/gateway-service/compare/v3.5.1...v3.5.2) (2026-08-23)
 
 ### Observability
