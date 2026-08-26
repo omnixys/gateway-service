@@ -89,7 +89,7 @@
     "@omnixys/grpc-ts": "^1.1.1",
     "@omnixys/http-ts": "^1.0.3",
     "@omnixys/kafka-ts": "^3.3.0",
-    "@omnixys/logger-ts": "^3.2.5",
+    "@omnixys/logger-ts": "^3.2.6",
     "@omnixys/observability-ts": "^3.4.1",
     "@omnixys/security-ts": "^4.1.2",
     "@prisma/client": "^6.19.3",
