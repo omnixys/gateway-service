@@ -55,6 +55,7 @@ const {
   KAFKA_IDEMPOTENCY_TTL,
   KAFKA_RETRY,
 
+  OTEL_LOGS_ENABLED,
   OTEL_URI,
   OTEL_TRANSPORT_MODE,
   OTEL_SAMPLING_RATIO,
@@ -468,6 +469,10 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
         endpoint: OTEL_URI,
         transport: OTEL_TRANSPORT_MODE as 'http' | 'grpc',
         samplingRatio: OTEL_SAMPLING_RATIO,
+      },
+
+      logs: {
+        enabled: OTEL_LOGS_ENABLED,
       },
 
       metrics: {
