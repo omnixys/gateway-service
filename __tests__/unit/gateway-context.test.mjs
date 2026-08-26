@@ -30,6 +30,7 @@ test('gateway derives auth and canonical propagation metadata', () => {
       const context = handleAuth({
         headers: {
           cookie: 'access_token=cookie-token; locale=de-DE',
+          'x-active-event-id': 'event-from-header',
           'user-agent': 'gateway-test',
           'x-forwarded-for': '203.0.113.99',
         },
@@ -38,6 +39,7 @@ test('gateway derives auth and canonical propagation metadata', () => {
       });
 
       assert.equal(context.token, 'Bearer cookie-token');
+      assert.equal(context.activeEventId, 'event-from-header');
       assert.equal(context.requestId, 'request-gateway');
       assert.equal(context.correlationId, 'correlation-gateway');
       assert.equal(context.meta.ip, '192.0.2.10');
@@ -237,6 +239,7 @@ test('gateway forwards canonical headers to every subgraph request', () => {
     {
       token: 'Bearer access',
       cookieHeader: 'access_token=access',
+      activeEventId: 'event-from-header',
       isIntrospection: false,
       requestId: 'request-1',
       correlationId: 'correlation-1',
@@ -248,6 +251,7 @@ test('gateway forwards canonical headers to every subgraph request', () => {
   assert.equal(values.get('x-request-id'), 'request-1');
   assert.equal(values.get('x-correlation-id'), 'correlation-1');
   assert.equal(values.get('authorization'), 'Bearer access');
+  assert.equal(values.get('x-active-event-id'), 'event-from-header');
   assert.equal(values.get('x-forwarded-for'), '192.0.2.1');
   assert.ok(values.has('traceparent'));
 });

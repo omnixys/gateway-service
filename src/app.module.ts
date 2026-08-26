@@ -114,6 +114,7 @@ function getCookieValue(name: string, cookieHeader: string | null): string | nul
 export interface GatewayRequestContext {
   token: string | null;
   cookieHeader: string | null;
+  activeEventId?: string | null;
   isIntrospection: boolean;
   requestId?: string;
   correlationId?: string;
@@ -143,6 +144,7 @@ export const handleAuth = (input: any): GatewayRequestContext => {
 
   const token = headers['authorization'] ?? null;
   const cookieHeader = headers['cookie'] ?? null;
+  const activeEventId = headerValue(headers['x-active-event-id']);
 
   const activeEvent = getCookieValue('activeEvent', cookieHeader);
 
@@ -187,6 +189,7 @@ export const handleAuth = (input: any): GatewayRequestContext => {
   return {
     token: bearerToken,
     cookieHeader,
+    activeEventId,
     isIntrospection,
     requestId,
     correlationId,
@@ -236,6 +239,9 @@ export function applyGatewayHeaders(
   }
   if (context.cookieHeader) {
     headers.set('cookie', context.cookieHeader);
+  }
+  if (context.activeEventId) {
+    headers.set('x-active-event-id', context.activeEventId);
   }
   if (context.requestId) {
     headers.set('x-request-id', context.requestId);

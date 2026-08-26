@@ -124,6 +124,7 @@ export const corsOptions: FastifyCorsOptions = {
     'x-correlation-id',
     'x-tenant-id',
     'x-actor-id',
+    'x-active-event-id',
     'x-request-id',
     'x-device',
     'x-platform',

@@ -113,8 +113,8 @@ importers:
         specifier: ^3.4.1
         version: 3.4.1(e2f0a2d6ecd9c042534ab2490aecd247)
       '@omnixys/security-ts':
-        specifier: ^4.1.0
-        version: 4.1.0(695a9cba9e3999c258afc4e8c6df2457)
+        specifier: ^4.1.2
+        version: 4.1.2(695a9cba9e3999c258afc4e8c6df2457)
       '@prisma/client':
         specifier: ^6.19.3
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
@@ -1744,9 +1744,18 @@ packages:
       '@omnixys/context-ts': ^3.2.1
       '@omnixys/contracts-ts': ^3.3.0
       fastify: 5.8.5
+    peerDependenciesMeta:
+      '@nestjs/common':
+        optional: true
+      '@nestjs/core':
+        optional: true
+      '@nestjs/graphql':
+        optional: true
+      fastify:
+        optional: true
 
-  '@omnixys/security-ts@4.1.0':
-    resolution: {integrity: sha512-a6rzLygYB4PEMilv6oj9rUcZCYcfA3gXcwra8M/RlQrhswqJMYZWOJ3X/IS3+6/l0RJsLxqM3OzaelzEVbppqA==, tarball: https://npm.pkg.github.com/download/@omnixys/security-ts/4.1.0/8900a9b03965fa21ea60e8b0fc0d944564485277}
+  '@omnixys/security-ts@4.1.2':
+    resolution: {integrity: sha512-tSvoRfqCcd6vrWV/3bAWbO5pkEUuESLyX/1Lh10GQNB3QXMZemqlaUOR5yIXpOTSfGquUAICNwipuinLZZw8gw==, tarball: https://npm.pkg.github.com/download/@omnixys/security-ts/4.1.2/554d6fe82cceab73d8dcc8426a3d85d1bf476951}
     peerDependencies:
       '@fastify/cookie': ^11.0.0
       '@nestjs/common': ^10 || ^11
@@ -8706,9 +8715,6 @@ snapshots:
 
   '@omnixys/observability-ts@3.4.1(e2f0a2d6ecd9c042534ab2490aecd247)':
     dependencies:
-      '@nestjs/common': 11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/core': 11.2.1(@nestjs/common@11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.2.1)(@nestjs/platform-express@11.2.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/graphql': 13.4.5(@apollo/subgraph@2.14.4(graphql@17.0.2))(@fastify/websocket@11.3.0)(@nestjs/common@11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(class-transformer@0.5.1)(class-validator@0.14.4)(graphql@17.0.2)(reflect-metadata@0.2.2)(ts-morph@27.0.2)
       '@omnixys/context-ts': 3.2.1(@fastify/cookie@11.1.2)(@nestjs/common@11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(@nestjs/graphql@13.4.5(@apollo/subgraph@2.14.4(graphql@17.0.2))(@fastify/websocket@11.3.0)(@nestjs/common@11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(class-transformer@0.5.1)(class-validator@0.14.4)(graphql@17.0.2)(reflect-metadata@0.2.2)(ts-morph@27.0.2))(@omnixys/contracts-ts@3.3.0(@nestjs/common@11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)))(fastify@5.8.5)(graphql@17.0.2)(rxjs@7.8.2)
       '@omnixys/contracts-ts': 3.3.0(@nestjs/common@11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))
       '@opentelemetry/api': 1.9.1
@@ -8730,15 +8736,19 @@ snapshots:
       '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.43.0
-      fastify: 5.8.5
       rxjs: 7.8.2
       web-vitals: 4.2.4
+    optionalDependencies:
+      '@nestjs/common': 11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core': 11.2.1(@nestjs/common@11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.2.1)(@nestjs/platform-express@11.2.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/graphql': 13.4.5(@apollo/subgraph@2.14.4(graphql@17.0.2))(@fastify/websocket@11.3.0)(@nestjs/common@11.2.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(class-transformer@0.5.1)(class-validator@0.14.4)(graphql@17.0.2)(reflect-metadata@0.2.2)(ts-morph@27.0.2)
+      fastify: 5.8.5
     transitivePeerDependencies:
       - '@opentelemetry/core'
       - supports-color
       - zone.js
 
-  '@omnixys/security-ts@4.1.0(695a9cba9e3999c258afc4e8c6df2457)':
+  '@omnixys/security-ts@4.1.2(695a9cba9e3999c258afc4e8c6df2457)':
     dependencies:
       '@fastify/cookie': 11.1.2
       '@grpc/grpc-js': 1.14.4
