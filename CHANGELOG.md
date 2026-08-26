@@ -7,6 +7,31 @@ All notable changes in this project will be documented in this file.
 
 ### Build
 
+* **Build:** fix build errors ([](https://github.com/omnixys/gateway-service/commit/afdd05bbd8535be34fdbd8978f803b41f019336a))
+* **Build:** fix build errors ([](https://github.com/omnixys/gateway-service/commit/439ce5c80eeea220a4eef40630666da6f7717bd6))
+
+### Deps
+
+* **Deps:** update logger to 3.2.6 ([](https://github.com/omnixys/gateway-service/commit/6526c0421f9a771c00d561acec1239bbf9eb713a))
+* **Deps:** update shared TypeScript packages ([](https://github.com/omnixys/gateway-service/commit/0329a58e64c42178775c6c7b6041547bfdc03fe7))
+
+### Gateway
+
+* **Gateway:** forward active event context ([](https://github.com/omnixys/gateway-service/commit/f71ebb78585d35191d0e3955912daf647df7763d))
+
+### Other
+
+* **Other:** Merge branch 'main' of https://github.com/omnixys/gateway-service ([](https://github.com/omnixys/gateway-service/commit/249d185d0ef0e091d1dc8175a6f7e53f4cec2f4f))
+
+### Release
+
+* **Release:** 3.6.1 [skip ci] ([](https://github.com/omnixys/gateway-service/commit/f9cda1ff91c41ee8b03ddda510faa4056fe3e7cc))
+* **Release:** 3.6.1 [skip ci] ([](https://github.com/omnixys/gateway-service/commit/a36327137800365d5fec32d35261e5eecb81c3e5))
+
+## [3.6.1](https://github.com/omnixys/gateway-service/compare/v3.6.0...v3.6.1) (2026-08-26)
+
+### Build
+
 * **Build:** fix build errors ([](https://github.com/omnixys/gateway-service/commit/439ce5c80eeea220a4eef40630666da6f7717bd6))
 
 ### Deps
