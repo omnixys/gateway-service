@@ -3,6 +3,17 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.6.1](https://github.com/omnixys/gateway-service/compare/v3.6.0...v3.6.1) (2026-08-26)
+
+### Deps
+
+* **Deps:** update logger to 3.2.6 ([](https://github.com/omnixys/gateway-service/commit/6526c0421f9a771c00d561acec1239bbf9eb713a))
+* **Deps:** update shared TypeScript packages ([](https://github.com/omnixys/gateway-service/commit/0329a58e64c42178775c6c7b6041547bfdc03fe7))
+
+### Gateway
+
+* **Gateway:** forward active event context ([](https://github.com/omnixys/gateway-service/commit/f71ebb78585d35191d0e3955912daf647df7763d))
+
 ## [3.6.0](https://github.com/omnixys/gateway-service/compare/v3.5.3...v3.6.0) (2026-08-26)
 
 ### Deps
