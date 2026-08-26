@@ -3,6 +3,16 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.6.0](https://github.com/omnixys/gateway-service/compare/v3.5.3...v3.6.0) (2026-08-26)
+
+### Deps
+
+* **Deps:** update omnixys ts packages ([](https://github.com/omnixys/gateway-service/commit/f17a3945b0411e26a54e2c99d2b0a4086baf9611))
+
+### Otel
+
+* **Otel:** add otel logs ([](https://github.com/omnixys/gateway-service/commit/882f0f33d8dd50b4e7016b992a62ae45ae6ddec5))
+
 ## [3.5.3](https://github.com/omnixys/gateway-service/compare/v3.5.2...v3.5.3) (2026-08-23)
 
 ### Logger
