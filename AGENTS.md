@@ -10,7 +10,7 @@
 Omnixys API Gateway – GraphQL federation gateway (Apollo), subscriptions, security, analytics.
 
 - Repository path: `services/gateway` (relative to the Omnixys root)
-- Package: `gateway-service` (version: 3.5.0)
+- Package: `gateway-service` (version: 3.6.0)
 - Runtime: Node >=25.8.2 (pnpm >=10.33.0)
 - Kind: Service
 
