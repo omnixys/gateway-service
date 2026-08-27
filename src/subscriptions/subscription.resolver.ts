@@ -3,6 +3,7 @@ import { ChatAccessService } from './chat-access.service.js';
 import { ChatConversationPayload } from './models/payloads/chat-conversation.payload.js';
 import { ChatMessagePayload } from './models/payloads/chat-message.payload.js';
 import { ConversationUnreadPayload } from './models/payloads/conversation-unread.payload.js';
+import { EventConversationsPayload } from './models/payloads/event-conversations.payload.js';
 import { InternalMessagePayload } from './models/payloads/internal-message.payload.js';
 import { NotificationReceivedPayload } from './models/payloads/notification-received.payload.js';
 import { SupportMessagePayload } from './models/payloads/support-message.payload.js';
@@ -124,6 +125,25 @@ export class UserSignupSubscriptionResolver {
     this.#logger.debug({ conversationId }, 'conversation_unread_subscription');
     return this.pubsub.asyncIterator<ConversationUnreadPayload>(
       `unreadCount.updated.${conversationId}`,
+    );
+  }
+
+  @Subscription(() => EventConversationsPayload, {
+    name: 'eventConversationsChanged',
+    resolve: (payload: EventConversationsPayload): EventConversationsPayload =>
+      payload,
+  })
+  @UseGuards(CookieAuthGuard)
+  eventConversationsChanged(
+    @Args('eventId') eventId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): AsyncIterator<EventConversationsPayload> {
+    this.#logger.debug(
+      { eventId, userId: user.id },
+      'event_conversations_subscription',
+    );
+    return this.pubsub.asyncIterator<EventConversationsPayload>(
+      `support.event.conversations.${eventId}`,
     );
   }
 
