@@ -3,6 +3,21 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.7.0](https://github.com/omnixys/gateway-service/compare/v3.6.1...v3.7.0) (2026-08-28)
+
+### Deps
+
+* **Deps:** update contracts-ts ([](https://github.com/omnixys/gateway-service/commit/003611b830431d29fcc198a7d3846fbe8bd4573b))
+
+### Subscriptions
+
+* **Subscriptions:** resolve support message payloads ([](https://github.com/omnixys/gateway-service/commit/7d8f830128bceb60bcf361d5223fabe0be27c0b9))
+
+### Support
+
+* **Support:** add eventConversationsChanged subscription ([](https://github.com/omnixys/gateway-service/commit/1f5a66f92444c6170d6e1e302e876842ffdf41ae))
+* **Support:** authorize realtime subscriptions ([](https://github.com/omnixys/gateway-service/commit/a4f51cdaf99f7c92b2d68c76f25eeb3f3e2de6dd))
+
 ## [3.6.1](https://github.com/omnixys/gateway-service/compare/v3.6.0...v3.6.1) (2026-08-26)
 
 ### Build
