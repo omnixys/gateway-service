@@ -8,6 +8,9 @@ export class ConversationUnreadPayload {
   @Field(() => Int)
   unreadCount!: number;
 
+  @Field(() => Int)
+  guestUnreadCount!: number;
+
   @Field()
   eventId!: string;
 }

@@ -29,5 +29,8 @@ export class EventConversationsPayload {
   unreadCount?: number;
 
   @Field({ nullable: true })
+  guestUnreadCount?: number;
+
+  @Field({ nullable: true })
   assignedTo?: string;
 }

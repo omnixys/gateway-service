@@ -8,6 +8,7 @@ import { InternalMessagePayload } from './models/payloads/internal-message.paylo
 import { NotificationReceivedPayload } from './models/payloads/notification-received.payload.js';
 import { SupportMessagePayload } from './models/payloads/support-message.payload.js';
 import { UserSignedUpPayload } from './models/payloads/user-signup.payload.js';
+import { SupportAccessService } from './support-access.service.js';
 import { Inject, UseGuards } from '@nestjs/common';
 import { Args, ID, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { RealmRoleType } from '@omnixys/contracts-ts';
@@ -16,6 +17,7 @@ import {
   CookieAuthGuard,
   CurrentUser,
   type CurrentUserData,
+  Public,
   RoleGuard,
   Roles,
 } from '@omnixys/security-ts';
@@ -89,6 +91,7 @@ export class UserSignupSubscriptionResolver {
   constructor(
     @Inject('PUBSUB') private readonly pubsub: GraphQLValkeyPubSubAdapter,
     private readonly chatAccess: ChatAccessService,
+    private readonly supportAccess: SupportAccessService,
   ) {}
 
   @Query(() => String, { name: 'wsPing' })
@@ -108,9 +111,11 @@ export class UserSignupSubscriptionResolver {
 
   @Subscription(() => SupportMessagePayload)
   @UseGuards(CookieAuthGuard)
-  supportMessageReceived(
+  async supportMessageReceived(
     @Args('conversationId') conversationId: string,
-  ): AsyncIterator<SupportMessageSubscriptionPayload> {
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AsyncIterator<SupportMessageSubscriptionPayload>> {
+    await this.supportAccess.assertConversationViewer(conversationId, user.id);
     this.#logger.debug({ conversationId }, 'support_message_subscription');
     return this.pubsub.asyncIterator<SupportMessageSubscriptionPayload>(
       `support.message.${conversationId}`,
@@ -119,9 +124,11 @@ export class UserSignupSubscriptionResolver {
 
   @Subscription(() => ConversationUnreadPayload)
   @UseGuards(CookieAuthGuard)
-  conversationUnreadUpdated(
+  async conversationUnreadUpdated(
     @Args('conversationId') conversationId: string,
-  ): AsyncIterator<ConversationUnreadPayload> {
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AsyncIterator<ConversationUnreadPayload>> {
+    await this.supportAccess.assertConversationViewer(conversationId, user.id);
     this.#logger.debug({ conversationId }, 'conversation_unread_subscription');
     return this.pubsub.asyncIterator<ConversationUnreadPayload>(
       `unreadCount.updated.${conversationId}`,
@@ -134,16 +141,32 @@ export class UserSignupSubscriptionResolver {
       payload,
   })
   @UseGuards(CookieAuthGuard)
-  eventConversationsChanged(
+  async eventConversationsChanged(
     @Args('eventId') eventId: string,
     @CurrentUser() user: CurrentUserData,
-  ): AsyncIterator<EventConversationsPayload> {
+  ): Promise<AsyncIterator<EventConversationsPayload>> {
+    await this.supportAccess.assertEventViewer(eventId, user.id);
     this.#logger.debug(
       { eventId, userId: user.id },
       'event_conversations_subscription',
     );
     return this.pubsub.asyncIterator<EventConversationsPayload>(
       `support.event.conversations.${eventId}`,
+    );
+  }
+
+  @Subscription(() => SupportMessagePayload)
+  @Public()
+  async rsvpSupportMessageReceived(
+    @Args('invitationId') invitationId: string,
+  ): Promise<AsyncIterator<SupportMessageSubscriptionPayload>> {
+    await this.supportAccess.assertInvitation(invitationId);
+    this.#logger.debug(
+      { hasInvitation: Boolean(invitationId) },
+      'rsvp_support_message_subscription',
+    );
+    return this.pubsub.asyncIterator<SupportMessageSubscriptionPayload>(
+      `support.invitation.message.${invitationId}`,
     );
   }
 

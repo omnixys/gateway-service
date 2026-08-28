@@ -41,4 +41,10 @@ export class SupportMessagePayload {
 
   @Field()
   createdAt!: string;
+
+  @Field({ nullable: true })
+  deliveredAt?: string;
+
+  @Field({ nullable: true })
+  readAt?: string;
 }
