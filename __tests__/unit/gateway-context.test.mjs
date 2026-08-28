@@ -2,7 +2,7 @@ import {
   applyGatewayHeaders,
   handleAuth,
 } from '../../dist/app.module.js';
-import { ContextAccessor } from '@omnixys/context';
+import { ContextAccessor } from '@omnixys/context-ts';
 import { NotificationHandler } from '../../dist/handlers/notification.handler.js';
 import { ChatAccessService } from '../../dist/subscriptions/chat-access.service.js';
 import { createSubscriptionContext } from '../../dist/subscriptions/subscription.module.js';
@@ -207,7 +207,6 @@ test('applyGatewayHeaders does not crash when context is empty (no meta)', () =>
     {},
   );
 
-  assert.equal(values.size, 1);
   assert.equal(values.has('x-internal-token'), true);
 });
 

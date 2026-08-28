@@ -2,7 +2,6 @@ import { GraphQLValkeyPubSubAdapter } from './adapter/graphql-valkey-pubsub.adap
 import { ChatAccessService } from './chat-access.service.js';
 import { ChatConversationPayload } from './models/payloads/chat-conversation.payload.js';
 import { ChatMessagePayload } from './models/payloads/chat-message.payload.js';
-import { ConversationUnreadPayload } from './models/payloads/conversation-unread.payload.js';
 import { EventConversationsPayload } from './models/payloads/event-conversations.payload.js';
 import { InternalMessagePayload } from './models/payloads/internal-message.payload.js';
 import { NotificationReceivedPayload } from './models/payloads/notification-received.payload.js';
@@ -24,6 +23,12 @@ import {
 
 interface SupportMessageSubscriptionPayload {
   supportMessage: SupportMessagePayload;
+}
+
+export function resolveSupportMessage(
+  payload: SupportMessageSubscriptionPayload,
+): SupportMessagePayload {
+  return payload.supportMessage;
 }
 
 interface InternalMessageSubscriptionPayload {
@@ -109,7 +114,9 @@ export class UserSignupSubscriptionResolver {
     return this.pubsub.asyncIterator<UserSignedUpPayload>('USER_SIGNED_UP');
   }
 
-  @Subscription(() => SupportMessagePayload)
+  @Subscription(() => SupportMessagePayload, {
+    resolve: resolveSupportMessage,
+  })
   @UseGuards(CookieAuthGuard)
   async supportMessageReceived(
     @Args('conversationId') conversationId: string,
@@ -119,19 +126,6 @@ export class UserSignupSubscriptionResolver {
     this.#logger.debug({ conversationId }, 'support_message_subscription');
     return this.pubsub.asyncIterator<SupportMessageSubscriptionPayload>(
       `support.message.${conversationId}`,
-    );
-  }
-
-  @Subscription(() => ConversationUnreadPayload)
-  @UseGuards(CookieAuthGuard)
-  async conversationUnreadUpdated(
-    @Args('conversationId') conversationId: string,
-    @CurrentUser() user: CurrentUserData,
-  ): Promise<AsyncIterator<ConversationUnreadPayload>> {
-    await this.supportAccess.assertConversationViewer(conversationId, user.id);
-    this.#logger.debug({ conversationId }, 'conversation_unread_subscription');
-    return this.pubsub.asyncIterator<ConversationUnreadPayload>(
-      `unreadCount.updated.${conversationId}`,
     );
   }
 
@@ -155,7 +149,9 @@ export class UserSignupSubscriptionResolver {
     );
   }
 
-  @Subscription(() => SupportMessagePayload)
+  @Subscription(() => SupportMessagePayload, {
+    resolve: resolveSupportMessage,
+  })
   @Public()
   async rsvpSupportMessageReceived(
     @Args('invitationId') invitationId: string,

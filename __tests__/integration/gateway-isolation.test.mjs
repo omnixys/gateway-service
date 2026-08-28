@@ -1,7 +1,7 @@
 import { handleAuth } from '../../dist/app.module.js';
 import { GraphQLValkeyPubSubAdapter } from '../../dist/subscriptions/adapter/graphql-valkey-pubsub.adapter.js';
 import { UserSignupSubscriptionResolver } from '../../dist/subscriptions/subscription.resolver.js';
-import { ContextAccessor } from '@omnixys/context';
+import { ContextAccessor } from '@omnixys/context-ts';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

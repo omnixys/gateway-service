@@ -9,9 +9,25 @@ process.env.INVITATION_URI = 'http://invitation.test/graphql';
 const { SupportAccessService } = await import(
   '../../dist/subscriptions/support-access.service.js'
 );
-const { UserSignupSubscriptionResolver } = await import(
+const { resolveSupportMessage, UserSignupSubscriptionResolver } = await import(
   '../../dist/subscriptions/subscription.resolver.js'
 );
+
+test('support subscriptions resolve the published supportMessage envelope', () => {
+  const supportMessage = {
+    id: 'message-1',
+    conversationId: 'conversation-1',
+    direction: 'OUTBOUND',
+    channel: 'WEBCHAT',
+    fromUserId: 'support-1',
+    fromGuest: false,
+    body: 'Guten Tag',
+    status: 'DELIVERED',
+    createdAt: '2026-08-28T10:00:00.000Z',
+  };
+
+  assert.equal(resolveSupportMessage({ supportMessage }), supportMessage);
+});
 
 test('SupportAccessService validates event viewers through the notification service', async () => {
   const originalFetch = globalThis.fetch;
