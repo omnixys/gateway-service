@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.8.0](https://github.com/omnixys/gateway-service/compare/v3.7.0...v3.8.0) (2026-08-30)
+
+### Mail
+
+* **Mail:** proxy downscoped mail tokens ([](https://github.com/omnixys/gateway-service/commit/ac596fcb38af1ca2a479b8e24ccbda43f3918542))
+
 ## [3.7.0](https://github.com/omnixys/gateway-service/compare/v3.6.1...v3.7.0) (2026-08-28)
 
 ### Deps
