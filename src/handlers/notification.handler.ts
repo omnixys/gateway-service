@@ -89,8 +89,10 @@ export class NotificationHandler {
     );
   }
 
-  @KafkaEvent(KafkaTopics.conversation.agentReplied)
-  @KafkaEvent(KafkaTopics.conversation.guestReplied)
+  @KafkaEvent(
+    KafkaTopics.conversation.agentReplied,
+    KafkaTopics.conversation.guestReplied,
+  )
   async handleSupportMessage(
     payload: SupportMessageReceivedDTO,
     _context: IKafkaEventContext,
@@ -118,8 +120,17 @@ export class NotificationHandler {
       status: payload.status,
       createdAt: payload.createdAt,
     };
-    await this.pubsub.publish(`support.message.${payload.conversationId}`, {
-      supportMessage,
-    });
+    try {
+      await this.pubsub.publish(`support.message.${payload.conversationId}`, {
+        supportMessage,
+      });
+    } catch (error) {
+      this.logger.error('Support subscription publish failed', {
+        conversationId: payload.conversationId,
+        messageId: payload.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 }

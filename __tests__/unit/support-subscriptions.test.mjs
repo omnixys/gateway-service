@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { KafkaTopics } from '@omnixys/kafka-ts';
 
 process.env.INTERNAL_GATEWAY_TOKEN =
   process.env.TEST_INTERNAL_GATEWAY_TOKEN ?? 'dev-internal-gateway-token';
@@ -12,6 +13,19 @@ const { SupportAccessService } = await import(
 const { resolveSupportMessage, UserSignupSubscriptionResolver } = await import(
   '../../dist/subscriptions/subscription.resolver.js'
 );
+const { NotificationHandler } = await import('../../dist/handlers/notification.handler.js');
+
+test('support handler registers both guest and agent reply topics', () => {
+  const metadataKeys = Reflect.getMetadataKeys(NotificationHandler.prototype.handleSupportMessage);
+  const kafkaMetadata = metadataKeys
+    .map((key) => Reflect.getMetadata(key, NotificationHandler.prototype.handleSupportMessage))
+    .find((value) => Array.isArray(value?.topics));
+
+  assert.deepEqual(new Set(kafkaMetadata?.topics), new Set([
+    KafkaTopics.conversation.agentReplied,
+    KafkaTopics.conversation.guestReplied,
+  ]));
+});
 
 test('support subscriptions resolve the published supportMessage envelope', () => {
   const supportMessage = {

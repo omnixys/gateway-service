@@ -12,6 +12,8 @@ import { env } from './config/env.js';
 import { RetryingSupergraphManager } from './graphql/retrying-supergraph-manager.js';
 import { HandlerModule } from './handlers/handler.module.js';
 import { HealthModule } from './health/health.module.js';
+import { MailTokenController } from './mail/mail-token.controller.js';
+import { MailTokenService } from './mail/mail-token.service.js';
 import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
 import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
@@ -498,7 +500,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
       },
     }),
   ],
-  controllers: [AnalyticsIngestionController],
-  providers: [BannerService],
+  controllers: [AnalyticsIngestionController, MailTokenController],
+  providers: [BannerService, MailTokenService],
 })
 export class AppModule {}

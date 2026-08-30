@@ -70,6 +70,10 @@ export const env = {
     'AUTHENTICATION_URI',
     'http://localhost:7501/graphql',
   ),
+  AUTHENTICATION_MAIL_TOKEN_URI: getEnv(
+    'AUTHENTICATION_MAIL_TOKEN_URI',
+    'http://localhost:7501/internal/mail/token',
+  ),
   EVENT_URI: getEnv('EVENT_URI', 'http://localhost:7406/graphql'),
   INVITATION_URI: getEnv('INVITATION_URI', 'http://localhost:7407/graphql'),
   INVITATION_ANALYTICS_TENANT_URI: getEnv(
@@ -179,6 +183,21 @@ export const env = {
     'dev-internal-gateway-token',
     { required: true },
   ),
+  OMNIMAIL_SERVICE_TOKEN_CURRENT: getEnv('OMNIMAIL_SERVICE_TOKEN_CURRENT', '', {
+    required: true,
+  }),
+  OMNIMAIL_SERVICE_TOKEN_PREVIOUS: getEnv(
+    'OMNIMAIL_SERVICE_TOKEN_PREVIOUS',
+    '',
+  ),
+  MAIL_TOKEN_RATE_LIMIT_REQUESTS: getEnv(
+    'MAIL_TOKEN_RATE_LIMIT_REQUESTS',
+    '30',
+    { transform: toNumber },
+  ),
+  MAIL_TOKEN_RATE_LIMIT_WINDOW: getEnv('MAIL_TOKEN_RATE_LIMIT_WINDOW', '60', {
+    transform: toNumber,
+  }),
   ENCRYPTION_KEY: getEnv('ENCRYPTION_KEY', '', { required: true }),
   CHAT_SERVICE_API_KEY: getEnv(
     'CHAT_SERVICE_API_KEY',
