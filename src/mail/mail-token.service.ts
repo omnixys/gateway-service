@@ -24,6 +24,7 @@ export class MailTokenService {
     authorization: string;
     serviceToken?: string;
     subject: string;
+    tenantId: string | undefined;
     ip: string;
   }): Promise<MailTokenResponse> {
     if (!this.validServiceToken(input.serviceToken)) {
@@ -49,11 +50,15 @@ export class MailTokenService {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
+    if( input.tenantId === undefined) {
+      throw new Error('tenand Id missing')
+    }
 
     const context = ContextAccessor.get();
     const headers: Record<string, string> = {
       authorization: input.authorization,
       'x-internal-token': env.INTERNAL_GATEWAY_TOKEN,
+      'x-tenant-id': input.tenantId,
     };
     if (context?.requestId) {
       headers['x-request-id'] = context.requestId;
