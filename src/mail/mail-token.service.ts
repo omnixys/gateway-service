@@ -111,6 +111,8 @@ export class MailTokenService {
   }
 
   private validServiceToken(value: string | undefined): boolean {
+    console.info('SDFSDFSDFSDFSDFS');
+    console.info(env.OMNIMAIL_SERVICE_TOKEN_CURRENT)
     return [env.OMNIMAIL_SERVICE_TOKEN_CURRENT, env.OMNIMAIL_SERVICE_TOKEN_PREVIOUS].some(
       (candidate) => secureEqual(value, candidate),
     );
