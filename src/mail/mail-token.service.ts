@@ -50,22 +50,20 @@ export class MailTokenService {
       );
     }
 
-  
     const context = ContextAccessor.get();
-    const tenantId = context?.tenantId;
+    const tenant = context?.tenant;
 
-    if (!tenantId) {
+    if (!tenant) {
       throw new ForbiddenException({
-        code: "UNAUTHORIZED_TENANT",
-        message: "Verified tenant context is required",
+        code: 'UNAUTHORIZED_TENANT',
+        message: 'Verified tenant context is required',
       });
     }
     const headers: Record<string, string> = {
       authorization: input.authorization,
       'x-internal-token': env.INTERNAL_GATEWAY_TOKEN,
+      'x-tenant-id': tenant.tenantId,
     };
-    
-    headers["x-tenant-id"] = tenantId;
 
     if (context?.requestId) {
       headers['x-request-id'] = context.requestId;
