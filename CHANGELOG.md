@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.8.4](https://github.com/omnixys/gateway-service/compare/v3.8.3...v3.8.4) (2026-08-31)
+
+### Deps
+
+* **Deps:** update contracts-ts ([](https://github.com/omnixys/gateway-service/commit/60d757a7c506b9e68738cac6955f775833c592e9))
+
 ## [3.8.3](https://github.com/omnixys/gateway-service/compare/v3.8.2...v3.8.3) (2026-08-31)
 
 ### Tenant
