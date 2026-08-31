@@ -24,7 +24,6 @@ export class MailTokenController {
   async issue(
     @Headers('authorization') authorization: string | undefined,
     @Headers('x-omnimail-service-token') serviceToken: string | undefined,
-    @Headers('x-tenant-id') tenantId: string | undefined,
     @Req() request: FastifyRequest,
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<MailTokenResponse> {
@@ -45,7 +44,6 @@ export class MailTokenController {
       authorization,
       serviceToken,
       subject: request.user.id,
-      tenantId,
       ip: request.ip,
     });
   }
