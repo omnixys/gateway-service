@@ -3,6 +3,16 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.8.1](https://github.com/omnixys/gateway-service/compare/v3.8.0...v3.8.1) (2026-08-31)
+
+### Cors
+
+* **Cors:** allow Omnimail production origin ([](https://github.com/omnixys/gateway-service/commit/93d7ce9701688ec247b9cd67d355934dbad3e42c))
+
+### Mail
+
+* **Mail:** document local gateway env ([](https://github.com/omnixys/gateway-service/commit/759f27f700433943c4862f84c992168ffde00198))
+
 ## [3.8.0](https://github.com/omnixys/gateway-service/compare/v3.7.0...v3.8.0) (2026-08-30)
 
 ### Mail
