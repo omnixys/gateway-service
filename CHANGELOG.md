@@ -3,6 +3,13 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.8.3](https://github.com/omnixys/gateway-service/compare/v3.8.2...v3.8.3) (2026-08-31)
+
+### Tenant
+
+* **Tenant:** add tenant verification ([](https://github.com/omnixys/gateway-service/commit/4d9fc6e8df59e48bd8e9a3e44abf62e4aaa70880))
+* **Tenant:** tenantId ([](https://github.com/omnixys/gateway-service/commit/e053c7878a4c9afcd1171e27b036c2f020aa279f))
+
 ## [3.8.2](https://github.com/omnixys/gateway-service/compare/v3.8.1...v3.8.2) (2026-08-31)
 
 ### Tenantid
