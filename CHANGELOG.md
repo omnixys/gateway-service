@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [3.8.2](https://github.com/omnixys/gateway-service/compare/v3.8.1...v3.8.2) (2026-08-31)
+
+### Tenantid
+
+* **Tenantid:** add tenant id ([](https://github.com/omnixys/gateway-service/commit/2919653726810e817ed874aafdd481f23c5590ba))
+
 ## [3.8.1](https://github.com/omnixys/gateway-service/compare/v3.8.0...v3.8.1) (2026-08-31)
 
 ### Cors
