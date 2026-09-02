@@ -56,33 +56,22 @@ jobs:
       !contains(github.event.head_commit.message, 'chore(version)') &&
       !contains(github.event.head_commit.message, 'docs(changelog)')
 
-    strategy:
-      matrix:
-        node-version: [24.10.0]
-
     steps:
       - name: 🧾 Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: ⚙️ Enable Corepack (pnpm)
-        run: |
-          corepack enable
-
-      - name: ⚙️ Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: ⚙️ Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          version: 11.24.0
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '26.8.1'
           cache: 'pnpm'
-
-      - name: ♻️ Restore pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-${{ runner.os }}-
 
       - name: Setup npm registry auth
         run: |
@@ -112,44 +101,24 @@ jobs:
       released: ${{ steps.semantic.outputs.released }}
       version: ${{ steps.read_version.outputs.version }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [24.10.0]
-
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Setup npm registry auth
-        run: |
-          echo "@omnixys:registry=https://npm.pkg.github.com" >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${OMNIXYS_TOKEN}" >> .npmrc
-        env:
-          OMNIXYS_TOKEN: ${{ secrets.OMNIXYS_TOKEN }}
+      - name: ⚙️ Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
 
-      - name: ⚙️ Enable Corepack (pnpm)
-        run: |
-          corepack enable
-
-      - name: ⚙️ Setup Node.js ${{ matrix.node-version }}
+      - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '26.8.1'
           cache: 'pnpm'
-
-      - name: ♻️ Restore pnpm cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-${{ runner.os }}-
 
       - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
-        env:
-          OMNIXYS_TOKEN: ${{ secrets.OMNIXYS_TOKEN }}
 
       - name: 🚀 Semantic Release
         id: semantic
@@ -204,11 +173,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [24.10.0]
+        node-version: [26.8.1]
 
     steps:
       - name: 🧾 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup npm registry auth
         run: |
@@ -296,11 +265,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [24.10.0]
+        node-version: [26.8.1]
 
     steps:
       - name: 🧾 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🔎 Check if Docker tag already exists
         id: check_tag

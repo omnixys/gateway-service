@@ -9,7 +9,7 @@
 
 - Kind: Service
 - Package: `gateway-service` (version: 3.5.0)
-- Runtime: Node >=25.8.2 (pnpm >=10.33.0)
+- Runtime: Node >=26.8.1 (pnpm >=11.24.0)
 - Description: Omnixys API Gateway – GraphQL federation gateway (Apollo), subscriptions, security, analytics.
 - Architecture: src/admin, analytics, config, core, graphql, handlers, health, security, subscriptions, types
 - Database: none (no local persistence; relies on downstream services); Migrations: none
