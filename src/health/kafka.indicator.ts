@@ -28,7 +28,7 @@ export class KafkaIndicator {
     private readonly kafka: KafkaLifecycleService,
     logger: OmnixysLogger,
   ) {
-    this.logger = logger.log(this.constructor.name);
+    this.logger = logger.log(this.constructor.name, 'service:gateway');
   }
 
   async isHealthy(): Promise<HealthIndicatorResult> {
@@ -43,7 +43,7 @@ export class KafkaIndicator {
       };
     }
 
-    this.logger.error('Kafka health check failed', { health });
+    this.logger.error('Kafka health check failed: %o', { health });
     return {
       kafka: {
         status: 'down',

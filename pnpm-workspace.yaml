@@ -1,6 +1,28 @@
 packages:
   - .
 
+allowBuilds:
+  '@apollo/protobufjs': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@swc/core': true
+  argon2: true
+  esbuild: true
+  prisma: true
+  protobufjs: true
+
+minimumReleaseAgeExclude:
+  - '@omnixys/cache-ts@4.0.0 || 4.1.0'
+  - '@omnixys/context-ts@4.0.2 || 4.0.3 || 4.1.0'
+  - '@omnixys/contracts-ts@4.0.0 || 4.1.0'
+  - '@omnixys/graphql-ts@4.0.0 || 4.1.0'
+  - '@omnixys/grpc-ts@2.0.0 || 2.1.0'
+  - '@omnixys/http-ts@2.0.0 || 2.1.0'
+  - '@omnixys/kafka-ts@4.0.0 || 4.1.0'
+  - '@omnixys/logger-ts@4.0.0 || 4.1.0'
+  - '@omnixys/observability-ts@4.0.0 || 4.1.0'
+  - '@omnixys/security-ts@5.0.0 || 5.1.0'
+
 overrides:
   fastify: 5.8.5
 

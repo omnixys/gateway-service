@@ -30,7 +30,7 @@ variable "APP_VERSION" {
 }
 
 variable "NODE_VERSION" {
-  default = "25.8.2"
+  default = "26.8.1"
 }
 
 variable "CREATED" {

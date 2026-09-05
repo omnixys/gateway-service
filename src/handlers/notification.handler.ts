@@ -29,7 +29,7 @@ export class NotificationHandler {
     private readonly pubsub: PubSubEngine,
     logger: OmnixysLogger,
   ) {
-    this.logger = logger.log(this.constructor.name);
+    this.logger = logger.log(this.constructor.name, 'service:gateway');
   }
 
   @KafkaEvent(KafkaTopics.gateway.sendCredentials)
@@ -40,7 +40,7 @@ export class NotificationHandler {
     if (!this.pubsub) {
       return;
     }
-    this.logger.debug('Publishing user signup subscription event', {
+    this.logger.debug('Publishing user signup subscription event: %o', {
       userId: payload.userId,
       invitationId: payload.invitationId,
     });
@@ -61,7 +61,7 @@ export class NotificationHandler {
     if (!this.pubsub) {
       return;
     }
-    this.logger.debug('Publishing internal message subscription event', {
+    this.logger.debug('Publishing internal message subscription event: %o', {
       conversationId: payload.conversationId,
       messageId: payload.id,
       participantIds: payload.participantIds,
@@ -100,7 +100,7 @@ export class NotificationHandler {
     if (!this.pubsub) {
       return;
     }
-    this.logger.debug('Publishing support message subscription event', {
+    this.logger.debug('Publishing support message subscription event: %o', {
       conversationId: payload.conversationId,
       messageId: payload.id,
     });
@@ -125,7 +125,7 @@ export class NotificationHandler {
         supportMessage,
       });
     } catch (error) {
-      this.logger.error('Support subscription publish failed', {
+      this.logger.error('Support subscription publish failed: %o', {
         conversationId: payload.conversationId,
         messageId: payload.id,
         error: error instanceof Error ? error.message : String(error),

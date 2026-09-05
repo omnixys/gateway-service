@@ -18,7 +18,7 @@
 # ---------------------------------------------------------------------------------------
 # syntax=docker/dockerfile:1.14.0
 
-ARG NODE_VERSION=25.8.2
+ARG NODE_VERSION=26.8.1
 
 # ---------------------------------------------------------------------------------------
 # Stage 0: Base image
@@ -27,7 +27,7 @@ ARG NODE_VERSION=25.8.2
 # ---------------------------------------------------------------------------------------
 FROM node:${NODE_VERSION}-bookworm-slim AS base
 WORKDIR /home/node
-RUN npm install -g pnpm@10.33.0
+RUN npm install -g pnpm@11.24.0
 
 # ---------------------------------------------------------------------------------------
 # Stage 1: Build (dist)
@@ -42,7 +42,8 @@ RUN --mount=type=secret,id=omnixys_token \
     TOKEN=$(cat /run/secrets/omnixys_token) && \
     echo "@omnixys:registry=https://npm.pkg.github.com" > .npmrc && \
     echo "//npm.pkg.github.com/:_authToken=${TOKEN}" >> .npmrc && \
-    pnpm install --frozen-lockfile --ignore-scripts
+    pnpm install --frozen-lockfile --ignore-scripts && \
+    rm -f .npmrc
 
 COPY --chown=node:node . .
 ENV CI=true
@@ -62,7 +63,8 @@ RUN --mount=type=secret,id=omnixys_token \
     TOKEN=$(cat /run/secrets/omnixys_token) && \
     echo "@omnixys:registry=https://npm.pkg.github.com" > .npmrc && \
     echo "//npm.pkg.github.com/:_authToken=${TOKEN}" >> .npmrc && \
-    pnpm install --frozen-lockfile --ignore-scripts
+    pnpm install --frozen-lockfile --ignore-scripts && \
+    rm -f .npmrc
 
 # ---------------------------------------------------------------------------------------
 # Stage 3: Final runtime image
@@ -109,7 +111,7 @@ RUN apt-get update && \
     mkdir -p /opt/app/log && chown -R node:node /opt/app
 
 # ----- Enable pnpm (runtime) -----
-RUN npm install -g pnpm@10.33.0
+RUN npm install -g pnpm@11.24.0
 
 # ----- Switch to non-root user -----
 USER node

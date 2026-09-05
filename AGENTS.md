@@ -11,7 +11,7 @@ Omnixys API Gateway – GraphQL federation gateway (Apollo), subscriptions, secu
 
 - Repository path: `services/gateway` (relative to the Omnixys root)
 - Package: `gateway-service` (version: 3.6.0)
-- Runtime: Node >=25.8.2 (pnpm >=10.33.0)
+- Runtime: Node >=26.8.1 (pnpm >=11.24.0)
 - Kind: Service
 
 ## Architecture
@@ -32,7 +32,7 @@ src/admin, analytics, config, core, graphql, handlers, health, security, subscri
 ## Commands
 
 Commands below are the authoritative validation commands for this repository. Run them
-with the appropriate tooling (observed versions: node 26.6.0, pnpm 11.20.0, uv 0.12.1, java 26.0.2).
+with the appropriate tooling (observed versions: node 26.8.1, pnpm 11.24.0, uv 0.12.8, java 26.0.2).
 
 ### Install
 
@@ -156,6 +156,15 @@ Schema changes must use this repository's migration mechanism. Never rely solely
 ## Multi-Tenancy
 
 Where this repository is tenant-aware, tenant isolation is a hard security boundary. Never allow: cross-tenant reads, cross-tenant writes, tenant IDs supplied by untrusted clients to override the authenticated tenant context, cache keys without tenant isolation, events without required tenant context, or queries that accidentally omit tenant predicates. Add tests for tenant isolation when changing tenant-aware behavior.
+
+## Identity
+
+- **K** = Keycloak `sub` (string, opaque)
+- **U** = internal user ID (UUIDv7, `omnixys_user_id` claim)
+- USER tokens MUST carry `omnixys_user_id` — fail-closed if absent
+- SERVICE/machine tokens: `userId=null`, use `subject` for rate keys, audit, tenant checks
+- Never trust client-supplied `userId`/`actorId` — always resolve from authenticated principal
+- Never store string literals (`'system'`, `'unknown'`, `''`) in UUID columns
 
 ## Security
 
