@@ -3,6 +3,34 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.0.0](https://github.com/omnixys/gateway-service/compare/v3.8.4...v4.0.0) (2026-09-05)
+
+### Deps
+
+* **Deps:** update omnixys deps ([](https://github.com/omnixys/gateway-service/commit/5d3e78420171d0494adeaea6484485dc4a11384f))
+
+### Gateway
+
+* **Gateway:** rewire omnixys service deps to file: ([](https://github.com/omnixys/gateway-service/commit/6ea1198f7ed12933335ebb3ade2b79bed783fe1c))
+* **Gateway:** remove debug logging in mail token validation ([](https://github.com/omnixys/gateway-service/commit/ae327a65b5ad81c53f53c42c66c2b7bf8e1afdab))
+
+### Identity
+
+* **Identity:** document U/K identity conventions in AGENTS.md ([](https://github.com/omnixys/gateway-service/commit/99cf296a401e19a0bd81c9686b840cecec2fb87b))
+
+### Logging
+
+* **Logging:** add service:gateway provenance source to logger acquisitions ([](https://github.com/omnixys/gateway-service/commit/90e06bc70cc8052fa78a0d1138ecb30c1a98e233))
+* **Logging:** add missing format placeholders to structured log calls ([](https://github.com/omnixys/gateway-service/commit/10589e30b849ccf74d05a0d6f344bc78861858b1))
+
+### Other
+
+* **Other:** Merge pull request #1 from omnixys/migration/uuid-v7 ([](https://github.com/omnixys/gateway-service/commit/d91c48f07bf9c9ef28f54f310561f20be86cfb9d)), closes [#1](https://github.com/omnixys/gateway-service/issues/1)
+
+### Runtime
+
+* **Runtime:** require node 26.8.1 and pnpm 11.24.0 ([](https://github.com/omnixys/gateway-service/commit/6529fb2e8c00df8791b7739ac67920067e92f8aa))
+
 ## [3.8.4](https://github.com/omnixys/gateway-service/compare/v3.8.3...v3.8.4) (2026-08-31)
 
 ### Deps
