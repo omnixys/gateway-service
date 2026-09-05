@@ -43,7 +43,7 @@ export class KafkaIndicator {
       };
     }
 
-    this.logger.error('Kafka health check failed', { health });
+    this.logger.error('Kafka health check failed: %o', { health });
     return {
       kafka: {
         status: 'down',
