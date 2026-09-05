@@ -23,7 +23,7 @@ export class AdminService {
   private readonly logger;
 
   constructor(private readonly loggerService: OmnixysLogger) {
-    this.logger = this.loggerService.log(this.constructor.name);
+    this.logger = this.loggerService.log(this.constructor.name, 'service:gateway');
   }
 
   /**

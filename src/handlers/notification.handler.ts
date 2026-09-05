@@ -29,7 +29,7 @@ export class NotificationHandler {
     private readonly pubsub: PubSubEngine,
     logger: OmnixysLogger,
   ) {
-    this.logger = logger.log(this.constructor.name);
+    this.logger = logger.log(this.constructor.name, 'service:gateway');
   }
 
   @KafkaEvent(KafkaTopics.gateway.sendCredentials)

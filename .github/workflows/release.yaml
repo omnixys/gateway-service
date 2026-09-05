@@ -23,11 +23,6 @@ on:
   push:
     branches:
       - main
-      - '!release'
-  pull_request:
-    branches:
-      - '**'
-      - '!release'
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -73,6 +68,14 @@ jobs:
           node-version: '26.8.1'
           cache: 'pnpm'
 
+      - name: ♻️ Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-
+
       - name: Setup npm registry auth
         run: |
           echo "@omnixys:registry=https://npm.pkg.github.com" >> .npmrc
@@ -101,10 +104,18 @@ jobs:
       released: ${{ steps.semantic.outputs.released }}
       version: ${{ steps.read_version.outputs.version }}
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Setup npm registry auth
+        run: |
+          echo "@omnixys:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${OMNIXYS_TOKEN}" >> .npmrc
+        env:
+          OMNIXYS_TOKEN: ${{ secrets.OMNIXYS_TOKEN }}
 
       - name: ⚙️ Setup pnpm
         uses: pnpm/action-setup@v4
@@ -117,8 +128,18 @@ jobs:
           node-version: '26.8.1'
           cache: 'pnpm'
 
+      - name: ♻️ Restore pnpm cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-
+
       - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          OMNIXYS_TOKEN: ${{ secrets.OMNIXYS_TOKEN }}
 
       - name: 🚀 Semantic Release
         id: semantic
@@ -171,9 +192,6 @@ jobs:
       CURRENT_VERSION: ${{ needs.release.outputs.version }}
     name: 🐳 Build & Push Multi-Arch Images (Docker)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [26.8.1]
 
     steps:
       - name: 🧾 Checkout repository
@@ -243,7 +261,7 @@ jobs:
             CREATED=${{ vars.CURRENT_DATE }}
             APP_VERSION=${{ needs.release.outputs.version }}
             APP_NAME=${{ vars.SERVICE }}
-            NODE_VERSION=${{ matrix.node-version }}
+            NODE_VERSION=26.8.1
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
@@ -263,9 +281,6 @@ jobs:
       CURRENT_VERSION: ${{ needs.release.outputs.version }}
     name: 🐳 Build & Push Multi-Arch Images (Github)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [26.8.1]
 
     steps:
       - name: 🧾 Checkout repository
@@ -329,7 +344,7 @@ jobs:
             CREATED=${{ vars.CURRENT_DATE }}
             APP_VERSION=${{ needs.release.outputs.version }}
             APP_NAME=${{ vars.SERVICE }}
-            NODE_VERSION=${{ matrix.node-version }}
+            NODE_VERSION=26.8.1
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
