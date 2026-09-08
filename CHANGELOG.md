@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.1.0](https://github.com/omnixys/gateway-service/compare/v4.0.0...v4.1.0) (2026-09-08)
+
+### Gateway
+
+* **Gateway:** expose validation details in error extensions ([](https://github.com/omnixys/gateway-service/commit/8b04bd1b93dc5974812f6503a116d616ae8b5f8f))
+
 ## [4.0.0](https://github.com/omnixys/gateway-service/compare/v3.8.4...v4.0.0) (2026-09-05)
 
 ### Deps
