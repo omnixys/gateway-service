@@ -386,6 +386,7 @@ function clearCookie(name: string, opts?: { secure?: boolean; sameSite?: SameSit
         formatError: createGraphQLFormatError({
           serviceName: SERVICE,
           preserveSafeSubgraphExtensions: true,
+          exposeValidationDetails: true,
         }),
         // Wichtig: Context baut die Infos, die in willSendRequest unten landen
         context: (request: any) => handleAuth(request),
