@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.1.1](https://github.com/omnixys/gateway-service/compare/v4.1.0...v4.1.1) (2026-09-10)
+
+### Deps
+
+* **Deps:** update graphql-ts ([](https://github.com/omnixys/gateway-service/commit/bd8beabb328986b2cd776cd36a36851624e741b7))
+
 ## [4.1.0](https://github.com/omnixys/gateway-service/compare/v4.0.0...v4.1.0) (2026-09-08)
 
 ### Gateway
