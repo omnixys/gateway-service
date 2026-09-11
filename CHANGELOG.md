@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.1.2](https://github.com/omnixys/gateway-service/compare/v4.1.1...v4.1.2) (2026-09-11)
+
+### Deps
+
+* **Deps:** update omnixys contracts-ts package ([](https://github.com/omnixys/gateway-service/commit/48e4eeb6e3b1c6901356921d3478c34276458fee))
+
 ## [4.1.1](https://github.com/omnixys/gateway-service/compare/v4.1.0...v4.1.1) (2026-09-10)
 
 ### Deps
