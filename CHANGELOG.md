@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.1.4](https://github.com/omnixys/gateway-service/compare/v4.1.3...v4.1.4) (2026-09-13)
+
+### Deps
+
+* **Deps:** update omnixys packages ([](https://github.com/omnixys/gateway-service/commit/dc7ea9f22be88b3afb07160a7a2355fcbb850892))
+
 ## [4.1.3](https://github.com/omnixys/gateway-service/compare/v4.1.2...v4.1.3) (2026-09-12)
 
 ### Gateway
