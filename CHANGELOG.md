@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.1.5](https://github.com/omnixys/gateway-service/compare/v4.1.4...v4.1.5) (2026-09-16)
+
+### Deps
+
+* **Deps:** update omnixys logger-ts package ([](https://github.com/omnixys/gateway-service/commit/96a33132d70ecc98a24df4874c5089fc86a959b5))
+
 ## [4.1.4](https://github.com/omnixys/gateway-service/compare/v4.1.3...v4.1.4) (2026-09-13)
 
 ### Deps
