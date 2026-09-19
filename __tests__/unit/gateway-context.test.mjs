@@ -51,18 +51,37 @@ test('gateway derives auth and canonical propagation metadata', () => {
   );
 });
 
-test('subscription context exposes the HttpOnly access token from the upgrade cookie', () => {
+test('subscription context exposes the HttpOnly access token and validated requested tenant', () => {
   const request = {
     headers: {
       cookie: 'locale=de-DE; access_token=encoded%20token',
     },
   };
 
-  const context = createSubscriptionContext({ extra: { request } });
+  const context = createSubscriptionContext({
+    extra: { request },
+    connectionParams: {
+      'x-tenant-id': '6e788f7f-c233-4cb8-bbde-c0b855e564be',
+      'x-actor-id': 'untrusted-client-actor',
+    },
+  });
 
   assert.equal(context.req, request);
   assert.equal(context.req.cookies.access_token, 'encoded token');
   assert.equal(context.req.cookies.locale, 'de-DE');
+  assert.equal(context.req.headers['x-tenant-id'], '6e788f7f-c233-4cb8-bbde-c0b855e564be');
+  assert.equal(context.req.headers['x-actor-id'], undefined);
+});
+
+test('subscription context rejects invalid tenant connection parameters', () => {
+  const request = { headers: {} };
+
+  const context = createSubscriptionContext({
+    extra: { request },
+    connectionParams: { 'x-tenant-id': 'not-a-tenant-id' },
+  });
+
+  assert.equal(context.req.headers['x-tenant-id'], undefined);
 });
 
 test('chat events match the subscription schema expected by the frontend', () => {

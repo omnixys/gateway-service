@@ -19,7 +19,10 @@ interface SubscriptionRequest {
 interface SubscriptionContextInput {
   req?: SubscriptionRequest;
   extra?: { request?: SubscriptionRequest };
+  connectionParams?: Readonly<Record<string, unknown>>;
 }
+
+const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function parseCookieHeader(value: string | undefined): Record<string, string> {
   if (!value) {
@@ -57,6 +60,11 @@ export function createSubscriptionContext(input: SubscriptionContextInput): {
     ...parseCookieHeader(serializedCookies),
     ...req.cookies,
   };
+
+  const requestedTenantId = input.connectionParams?.['x-tenant-id'];
+  if (typeof requestedTenantId === 'string' && UUID_V4_PATTERN.test(requestedTenantId)) {
+    req.headers['x-tenant-id'] = requestedTenantId;
+  }
 
   logger.debug(
     { hasAccessToken: Boolean(req.cookies.access_token) },
