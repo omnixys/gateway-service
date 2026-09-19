@@ -7,6 +7,9 @@ import { SupportAccessService } from './support-access.service.js';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
+import { getLogger } from '@omnixys/logger-ts';
+
+const logger = getLogger('SubscriptionContext');
 
 interface SubscriptionRequest {
   headers: Record<string, string | string[] | undefined>;
@@ -54,6 +57,11 @@ export function createSubscriptionContext(input: SubscriptionContextInput): {
     ...parseCookieHeader(serializedCookies),
     ...req.cookies,
   };
+
+  logger.debug(
+    { hasAccessToken: Boolean(req.cookies.access_token) },
+    'subscription_connection_context',
+  );
 
   return { req };
 }

@@ -27,6 +27,26 @@ test('support handler registers both guest and agent reply topics', () => {
   ]));
 });
 
+for (const topic of [
+  KafkaTopics.conversation.agentReplied,
+  KafkaTopics.conversation.guestReplied,
+]) {
+  test(`support handler publishes ${topic} to the conversation channel`, async () => {
+    const published = [];
+    const handler = new NotificationHandler({
+      publish: async (trigger, payload) => published.push({ trigger, payload }),
+    }, { log: () => ({ debug() {}, error() {} }) });
+    await handler.handleSupportMessage({
+      id: 'message-1', conversationId: 'conversation-1', direction: 'OUTBOUND',
+      channel: 'WEBCHAT', fromGuest: false, body: 'Guten Tag', status: 'DELIVERED',
+      createdAt: '2026-08-28T10:00:00.000Z',
+    }, {});
+    assert.equal(published.length, 1);
+    assert.equal(published[0].trigger, 'support.message.conversation-1');
+    assert.equal(published[0].payload.supportMessage.id, 'message-1');
+  });
+}
+
 test('support subscriptions resolve the published supportMessage envelope', () => {
   const supportMessage = {
     id: 'message-1',
