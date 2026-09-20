@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { KafkaTopics } from '@omnixys/kafka-ts';
+import { ContextAccessor } from '@omnixys/context-ts';
 
 process.env.INTERNAL_GATEWAY_TOKEN =
   process.env.TEST_INTERNAL_GATEWAY_TOKEN ?? 'dev-internal-gateway-token';
@@ -72,12 +73,25 @@ test('SupportAccessService validates event viewers through the notification serv
   };
   try {
     const service = new SupportAccessService({ hit: async () => true });
-    await service.assertEventViewer('event-1', 'user-1');
+    await ContextAccessor.run(
+      {
+        tenant: {
+          tenantId: '6e788f7f-c233-4cb8-bbde-c0b855e564be',
+          source: 'jwt-claim',
+          verified: true,
+        },
+      },
+      () => service.assertEventViewer('event-1', 'user-1'),
+    );
 
     const url = new URL(request.input);
     assert.equal(url.pathname, '/internal/support/access/event');
     assert.equal(url.searchParams.get('eventId'), 'event-1');
     assert.equal(url.searchParams.get('userId'), 'user-1');
+    assert.equal(
+      url.searchParams.get('tenantId'),
+      '6e788f7f-c233-4cb8-bbde-c0b855e564be',
+    );
     assert.equal(request.init.headers['x-internal-token'], 'dev-internal-gateway-token');
   } finally {
     globalThis.fetch = originalFetch;
