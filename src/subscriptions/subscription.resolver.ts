@@ -11,6 +11,7 @@ import { SupportAccessService } from './support-access.service.js';
 import { Inject, UseGuards } from '@nestjs/common';
 import { Args, ID, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { RealmRoleType } from '@omnixys/contracts-ts';
+import { ContextAccessor } from '@omnixys/context-ts';
 import { getLogger } from '@omnixys/logger-ts';
 import {
   CookieAuthGuard,
@@ -171,9 +172,13 @@ export class UserSignupSubscriptionResolver {
   internalMessageReceived(
     @CurrentUser() user: CurrentUserData,
   ): AsyncIterator<InternalMessageSubscriptionPayload> {
-    this.#logger.debug({ userId: user.id }, 'internal_message_subscription');
+    const tenant = ContextAccessor.get()?.tenant;
+    if (!tenant?.verified) {
+      throw new Error('Verified tenant context is required');
+    }
+    this.#logger.debug({ userId: user.id, tenantId: tenant.tenantId }, 'internal_message_subscription');
     return this.pubsub.asyncIterator<InternalMessageSubscriptionPayload>(
-      `internal.message.${user.id}`,
+      `internal.message.${tenant.tenantId}.${user.id}`,
     );
   }
 

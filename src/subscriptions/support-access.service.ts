@@ -2,6 +2,7 @@ import { env } from '../config/env.js';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ValkeyRateLimitService } from '@omnixys/cache-ts';
 import { ErrorCode, FrameworkException } from '@omnixys/contracts-ts';
+import { ContextAccessor } from '@omnixys/context-ts';
 import { createHash } from 'node:crypto';
 
 const {
@@ -48,6 +49,11 @@ export class SupportAccessService {
     params: Record<string, string>,
   ): Promise<void> {
     const url = new URL(`/internal/support/access/${scope}`, new URL(NOTIFICATION_URI).origin);
+    const tenant = ContextAccessor.get()?.tenant;
+    if (!tenant?.verified) {
+      throw new FrameworkException(ErrorCode.CONVERSATION_ACCESS_DENIED);
+    }
+    url.searchParams.set('tenantId', tenant.tenantId);
     for (const [key, value] of Object.entries(params)) {
       url.searchParams.set(key, value);
     }

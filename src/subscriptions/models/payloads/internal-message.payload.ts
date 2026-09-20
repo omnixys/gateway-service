@@ -11,6 +11,9 @@ export class InternalMessagePayload {
   @Field()
   senderId!: string;
 
+  @Field(() => String)
+  channel!: string;
+
   @Field()
   body!: string;
 

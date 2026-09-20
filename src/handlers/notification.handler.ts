@@ -56,7 +56,7 @@ export class NotificationHandler {
   @KafkaEvent(KafkaTopics.conversation.internalMessage)
   async handleInternalMessage(
     payload: InternalMessageSentDTO,
-    _context: IKafkaEventContext,
+    context: IKafkaEventContext,
   ): Promise<void> {
     if (!this.pubsub) {
       return;
@@ -70,21 +70,29 @@ export class NotificationHandler {
       id: payload.id,
       conversationId: payload.conversationId,
       senderId: payload.senderId,
+      channel: (payload as InternalMessageSentDTO & { channel?: string }).channel ?? 'IN_APP',
       body: payload.body,
       priority: payload.priority,
       createdAt: payload.createdAt,
     };
     // Publish to each participant's personal channel for secure per-user delivery
     const targets = payload.participantIds ?? [];
+    if (!context.tenantId) {
+      this.logger.error('Internal message event rejected without tenant context: %o', {
+        conversationId: payload.conversationId,
+        messageId: payload.id,
+      });
+      return;
+    }
     if (targets.length === 0) {
-      await this.pubsub.publish(`internal.message.${payload.conversationId}`, {
+      await this.pubsub.publish(`internal.message.${context.tenantId}.${payload.conversationId}`, {
         internalMessage,
       });
       return;
     }
     await Promise.all(
       targets.map((userId) =>
-        this.pubsub.publish(`internal.message.${userId}`, { internalMessage }),
+        this.pubsub.publish(`internal.message.${context.tenantId}.${userId}`, { internalMessage }),
       ),
     );
   }
