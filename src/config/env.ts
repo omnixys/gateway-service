@@ -69,53 +69,84 @@ export const env = {
   AUTHENTICATION_URI: getEnv(
     'AUTHENTICATION_URI',
     'http://localhost:7501/graphql',
+    { required: true },
   ),
   AUTHENTICATION_MAIL_TOKEN_URI: getEnv(
     'AUTHENTICATION_MAIL_TOKEN_URI',
     'http://localhost:7501/internal/mail/token',
+    { required: true },
   ),
-  EVENT_URI: getEnv('EVENT_URI', 'http://localhost:7406/graphql'),
-  INVITATION_URI: getEnv('INVITATION_URI', 'http://localhost:7407/graphql'),
+  EVENT_URI: getEnv('EVENT_URI', 'http://localhost:7406/graphql', {
+    required: true,
+  }),
+  INVITATION_URI: getEnv('INVITATION_URI', 'http://localhost:7407/graphql', {
+    required: true,
+  }),
   INVITATION_ANALYTICS_TENANT_URI: getEnv(
     'INVITATION_ANALYTICS_TENANT_URI',
     'http://localhost:7407/internal/analytics/tenant',
+    { required: true },
   ),
-  TICKET_URI: getEnv('TICKET_URI', 'http://localhost:7408/graphql'),
-  NOTIFICATION_URI: getEnv('NOTIFICATION_URI', 'http://localhost:3005/graphql'),
-  USER_URI: getEnv('USER_URI', 'http://localhost:7402/graphql'),
-  SEAT_URI: getEnv('SEAT_URI', 'http://localhost:7409/graphql'),
-  ADDRESS_URI: getEnv('ADDRESS_URI', 'http://localhost:7004/graphql'),
-  CHAT_URI: getEnv('CHAT_URI', 'http://localhost:8001/graphql'),
+  TICKET_URI: getEnv('TICKET_URI', 'http://localhost:7408/graphql', {
+    required: true,
+  }),
+  NOTIFICATION_URI: getEnv(
+    'NOTIFICATION_URI',
+    'http://localhost:3005/graphql',
+    { required: true },
+  ),
+  USER_URI: getEnv('USER_URI', 'http://localhost:7402/graphql', {
+    required: true,
+  }),
+  SEAT_URI: getEnv('SEAT_URI', 'http://localhost:7409/graphql', {
+    required: true,
+  }),
+  ADDRESS_URI: getEnv('ADDRESS_URI', 'http://localhost:7004/graphql', {
+    required: true,
+  }),
+  CHAT_URI: getEnv('CHAT_URI', 'http://localhost:8001/graphql', {
+    required: true,
+  }),
   COMMUNICATION_GATEWAY_URI: getEnv(
     'COMMUNICATION_GATEWAY_URI',
     'http://localhost:8002/graphql',
+    { required: true },
   ),
-  ANALYTICS_URI: getEnv('ANALYTICS_URI', 'http://localhost:7410/graphql'),
-  TENANT_URI: getEnv('TENANT_URI', 'http://localhost:7502/graphql'),
-  DEFAULT_TENANT_ID: getEnv('DEFAULT_TENANT_ID', ''),
+  ANALYTICS_URI: getEnv('ANALYTICS_URI', 'http://localhost:7410/graphql', {
+    required: true,
+  }),
+  TENANT_URI: getEnv('TENANT_URI', 'http://localhost:7502/graphql', {
+    required: true,
+  }),
+  DEFAULT_TENANT_ID: getEnv('DEFAULT_TENANT_ID', '', { required: true }),
 
   ANALYTICS_INGESTION_URI: getEnv(
     'ANALYTICS_INGESTION_URI',
     'http://localhost:7410/v1/analytics/batch',
+    { required: true },
   ),
   ANALYTICS_TOKEN_URI: getEnv(
     'ANALYTICS_TOKEN_URI',
     'http://localhost:7410/v1/analytics/tokens',
+    { required: true },
   ),
   ANALYTICS_FLAGS_URI: getEnv(
     'ANALYTICS_FLAGS_URI',
     'http://localhost:7410/v1/analytics/flags/evaluate',
+    { required: true },
   ),
   ANALYTICS_CHECKPOINT_ORIGINS: getEnv(
     'ANALYTICS_CHECKPOINT_ORIGINS',
     'https://checkpoint.omnixys.com,http://localhost:3000',
+    { required: true },
   ),
   ANALYTICS_WEDDING_ORIGINS: getEnv(
     'ANALYTICS_WEDDING_ORIGINS',
     'https://cgr.omnixys.com,http://localhost:3001',
+    { required: true },
   ),
 
-  NODE_ENV: getEnv('NODE_ENV', 'development'),
+  NODE_ENV: getEnv('NODE_ENV', 'development', { required: true }),
   PORT: getEnv('PORT', '4000', { transform: toNumber }),
   SERVICE: getEnv('SERVICE', 'user'),
 
@@ -137,18 +168,20 @@ export const env = {
   }),
 
   OTEL_LOGS_ENABLED: getEnv('OTEL_LOGS_ENABLED', 'true', { transform: toBool }),
-  OTEL_URI: getEnv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://localhost:4318'),
+  OTEL_URI: getEnv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://localhost:4318', {
+    required: true,
+  }),
   OTEL_TRANSPORT_MODE: getEnv('OTEL_TRANSPORT_MODE', 'http', {
     required: true,
   }),
   OTEL_SAMPLING_RATIO: getEnv('OTEL_SAMPLING_RATIO', '1', {
     transform: toNumber,
   }),
-  TEMPO_URI: getEnv('TEMPO_URI', 'http://localhost:4318'),
+  TEMPO_URI: getEnv('TEMPO_URI', 'http://localhost:4318', { required: true }),
   PROMETHEUS_ENABLE: getEnv('PROMETHEUS_ENABLE', 'true', { transform: toBool }),
   PROMETHEUS_PORT: getEnv('PROMETHEUS_PORT', '9464', { transform: toNumber }),
 
-  KAFKA_BROKER: getEnv('KAFKA_BROKER', 'localhost:9092'),
+  KAFKA_BROKER: getEnv('KAFKA_BROKER', 'localhost:9092', { required: true }),
   KAFKA_RETRY: getEnv('KAFKA_RETRY', '5', { transform: toNumber }),
   KAFKA_IDEMPOTENCY_ENABLE: getEnv('KAFKA_IDEMPOTENCY_ENABLE', 'true', {
     transform: toBool,
@@ -157,7 +190,9 @@ export const env = {
     transform: toNumber,
   }),
 
-  VALKEY_URL: getEnv('VALKEY_URL', 'valkey://localhost:6380'),
+  VALKEY_URL: getEnv('VALKEY_URL', 'valkey://localhost:6380', {
+    required: true,
+  }),
   VALKEY_PASSWORD: getEnv('VALKEY_PASSWORD', '', { required: true }),
 
   RATE_LIMIT_ENABLE: getEnv('RATE_LIMIT_ENABLE', 'true', { transform: toBool }),
@@ -169,11 +204,11 @@ export const env = {
   }),
 
   KC_CLIENT_SECRET: getEnv('KC_CLIENT_SECRET', '', { required: true }),
-  KC_URL: getEnv('KC_URL', 'http://localhost:18080/auth'),
-  KC_REALM: getEnv('KC_REALM', 'camunda-platform'),
-  KC_CLIENT_ID: getEnv('KC_CLIENT_ID', 'camunda-identity'),
-  KC_ADMIN_USERNAME: getEnv('KC_ADMIN_USERNAME', 'admin'),
-  KC_ADMIN_PASSWORD: getEnv('KC_ADMIN_PASSWORD', 'admin'),
+  KC_URL: getEnv('KC_URL', 'http://localhost:18080/auth', { required: true }),
+  KC_REALM: getEnv('KC_REALM', 'camunda-platform', { required: true }),
+  KC_CLIENT_ID: getEnv('KC_CLIENT_ID', 'camunda-identity', { required: true }),
+  KC_ADMIN_USERNAME: getEnv('KC_ADMIN_USERNAME', 'admin', { required: true }),
+  KC_ADMIN_PASSWORD: getEnv('KC_ADMIN_PASSWORD', 'admin', { required: true }),
 
   COOKIE_SECRET: getEnv('COOKIE_SECRET', 'omnixys-development-secret', {
     required: true,
@@ -210,9 +245,11 @@ export const env = {
     { required: true },
   ),
 
-  KEYCLOAK_HEALTH_URL: getEnv('KEYCLOAK_HEALTH_URL', ''),
-  TEMPO_HEALTH_URL: getEnv('TEMPO_HEALTH_URL', ''),
-  PROMETHEUS_HEALTH_URL: getEnv('PROMETHEUS_HEALTH_URL', ''),
+  KEYCLOAK_HEALTH_URL: getEnv('KEYCLOAK_HEALTH_URL', '', { required: true }),
+  TEMPO_HEALTH_URL: getEnv('TEMPO_HEALTH_URL', '', { required: true }),
+  PROMETHEUS_HEALTH_URL: getEnv('PROMETHEUS_HEALTH_URL', '', {
+    required: true,
+  }),
 
   SUPERGRAPH_RETRY_INITIAL_MS: getEnv('SUPERGRAPH_RETRY_INITIAL_MS', '1000', {
     transform: toNumber,
