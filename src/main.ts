@@ -17,8 +17,8 @@
 
 import { AppModule } from './app.module.js';
 import { corsOptions } from './config/cors.js';
-import { forwardOtlpTraces } from './observability/otlp-proxy.js';
 import { env } from './config/env.js';
+import { forwardOtlpTraces } from './observability/otlp-proxy.js';
 import compress from '@fastify/compress';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';

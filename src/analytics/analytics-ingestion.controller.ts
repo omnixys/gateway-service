@@ -232,7 +232,9 @@ function analyticsApplication(origin: string): AnalyticsApplicationConfig | unde
 async function resolvePublicTenant(
   reference: AnalyticsTokenRequest['publicReference'],
 ): Promise<string | undefined> {
-  if (!reference) return undefined;
+  if (!reference) {
+    return undefined;
+  }
   if (
     (reference.type !== 'event' && reference.type !== 'invitation') ||
     !reference.id ||
