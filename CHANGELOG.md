@@ -3,6 +3,23 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.2.0](https://github.com/omnixys/gateway-service/compare/v4.1.5...v4.2.0) (2026-09-21)
+
+### Config
+
+* **Config:** require critical env vars in development and staging ([](https://github.com/omnixys/gateway-service/commit/b34ef8e14aa73f5df5ac675ede460d311f3749bc))
+* **Config:** require critical env vars in production ([](https://github.com/omnixys/gateway-service/commit/93475ab9728c202eae71e2362d4fdca4d1c7fc8f))
+
+### Gateway
+
+* **Gateway:** tenant-scoped internal message delivery with channel payload ([](https://github.com/omnixys/gateway-service/commit/430f8a04adb3c803e92566982c13b6ead458b8e4))
+
+### Subscriptions
+
+* **Subscriptions:** forward requested tenant context ([](https://github.com/omnixys/gateway-service/commit/8d7ef7ab8e88ea3db5640cf2e3b2aef63153736f))
+* **Subscriptions:** cover verified tenant forwarding ([](https://github.com/omnixys/gateway-service/commit/b96d3585050ec4dbd85b701b1fea88386bfd8f5d))
+* **Subscriptions:** verify support realtime routing ([](https://github.com/omnixys/gateway-service/commit/b729fd00409028dd5c762f7828cf99be284c3412))
+
 ## [4.1.5](https://github.com/omnixys/gateway-service/compare/v4.1.4...v4.1.5) (2026-09-16)
 
 ### Deps
