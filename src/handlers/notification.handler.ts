@@ -70,7 +70,9 @@ export class NotificationHandler {
       id: payload.id,
       conversationId: payload.conversationId,
       senderId: payload.senderId,
-      channel: (payload as InternalMessageSentDTO & { channel?: string }).channel ?? 'IN_APP',
+      channel:
+        (payload as InternalMessageSentDTO & { channel?: string }).channel ??
+        'IN_APP',
       body: payload.body,
       priority: payload.priority,
       createdAt: payload.createdAt,
@@ -78,21 +80,29 @@ export class NotificationHandler {
     // Publish to each participant's personal channel for secure per-user delivery
     const targets = payload.participantIds ?? [];
     if (!context.tenantId) {
-      this.logger.error('Internal message event rejected without tenant context: %o', {
-        conversationId: payload.conversationId,
-        messageId: payload.id,
-      });
+      this.logger.error(
+        'Internal message event rejected without tenant context: %o',
+        {
+          conversationId: payload.conversationId,
+          messageId: payload.id,
+        },
+      );
       return;
     }
     if (targets.length === 0) {
-      await this.pubsub.publish(`internal.message.${context.tenantId}.${payload.conversationId}`, {
-        internalMessage,
-      });
+      await this.pubsub.publish(
+        `internal.message.${context.tenantId}.${payload.conversationId}`,
+        {
+          internalMessage,
+        },
+      );
       return;
     }
     await Promise.all(
       targets.map((userId) =>
-        this.pubsub.publish(`internal.message.${context.tenantId}.${userId}`, { internalMessage }),
+        this.pubsub.publish(`internal.message.${context.tenantId}.${userId}`, {
+          internalMessage,
+        }),
       ),
     );
   }

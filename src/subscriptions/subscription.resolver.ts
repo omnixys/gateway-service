@@ -10,8 +10,8 @@ import { UserSignedUpPayload } from './models/payloads/user-signup.payload.js';
 import { SupportAccessService } from './support-access.service.js';
 import { Inject, UseGuards } from '@nestjs/common';
 import { Args, ID, Query, Resolver, Subscription } from '@nestjs/graphql';
-import { RealmRoleType } from '@omnixys/contracts-ts';
 import { ContextAccessor } from '@omnixys/context-ts';
+import { RealmRoleType } from '@omnixys/contracts-ts';
 import { getLogger } from '@omnixys/logger-ts';
 import {
   CookieAuthGuard,
@@ -176,7 +176,10 @@ export class UserSignupSubscriptionResolver {
     if (!tenant?.verified) {
       throw new Error('Verified tenant context is required');
     }
-    this.#logger.debug({ userId: user.id, tenantId: tenant.tenantId }, 'internal_message_subscription');
+    this.#logger.debug(
+      { userId: user.id, tenantId: tenant.tenantId },
+      'internal_message_subscription',
+    );
     return this.pubsub.asyncIterator<InternalMessageSubscriptionPayload>(
       `internal.message.${tenant.tenantId}.${user.id}`,
     );
