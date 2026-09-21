@@ -19,6 +19,12 @@ import { AppModule } from './app.module.js';
 import { corsOptions } from './config/cors.js';
 import { env } from './config/env.js';
 import { forwardOtlpTraces } from './observability/otlp-proxy.js';
+import {
+  isTelemetryRequest,
+  isTrustedProxyAddress,
+  TelemetryRateLimiter,
+  telemetryRateLimitKey,
+} from './observability/telemetry-rate-limit.js';
 import compress from '@fastify/compress';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
@@ -67,6 +73,9 @@ import 'reflect-metadata';
  * Startet den Backend-Server auf dem konfigurierten Port (Standard: `4000`).
  */
 async function bootstrap(): Promise<void> {
+  const trustedProxyCidrs = env.TRUSTED_PROXY_CIDRS.split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
   /**
    * @constant app
    * @description Erstellt die NestJS-Applikation auf Basis von Fastify.
@@ -78,6 +87,8 @@ async function bootstrap(): Promise<void> {
     AppModule,
     new FastifyAdapter({
       logger: false,
+      trustProxy: (address: string) =>
+        isTrustedProxyAddress(address, trustedProxyCidrs),
       /**
        * Optionaler JSON-Serializer für große numerische Werte.
        * Wandelt BigInt → Number um, um JSON-Parsing-Fehler zu vermeiden.
@@ -148,7 +159,7 @@ async function bootstrap(): Promise<void> {
       max: env.RATE_LIMIT_REQUESTS, // max. Requests pro Window
       timeWindow: env.RATE_LIMIT_WINDOW,
       allowList: (request: { url: string }) =>
-        request.url.startsWith('/health'),
+        request.url.startsWith('/health') || isTelemetryRequest(request.url),
       errorResponseBuilder: (
         _req: unknown,
         context: errorResponseBuilderContext,
@@ -163,6 +174,28 @@ async function bootstrap(): Promise<void> {
         err.httpStatus = 429;
         return err;
       },
+    });
+
+    const telemetryLimiter = new TelemetryRateLimiter();
+    fastify.addHook('onRequest', async (request, reply) => {
+      if (!isTelemetryRequest(request.url)) return;
+      const result = telemetryLimiter.hit(
+        telemetryRateLimitKey({
+          url: request.url,
+          ip: request.ip,
+          authorization: request.headers.authorization,
+        }),
+        env.TELEMETRY_RATE_LIMIT_REQUESTS,
+        env.TELEMETRY_RATE_LIMIT_WINDOW,
+      );
+      if (result.allowed) return;
+      return reply
+        .status(429)
+        .header('retry-after', String(result.retryAfter))
+        .send({
+          code: 'TELEMETRY_RATE_LIMIT_EXCEEDED',
+          message: 'Telemetry rate limit exceeded',
+        });
     });
   }
 
