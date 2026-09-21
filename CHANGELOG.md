@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.2.1](https://github.com/omnixys/gateway-service/compare/v4.2.0...v4.2.1) (2026-09-21)
+
+### Gateway
+
+* **Gateway:** resolve lint findings ([](https://github.com/omnixys/gateway-service/commit/cde5e3467044a985301abd265c93a51e4a215db2))
+
 ## [4.2.0](https://github.com/omnixys/gateway-service/compare/v4.1.5...v4.2.0) (2026-09-21)
 
 ### Config
