@@ -88,7 +88,7 @@ export interface AuthToken {
 export type SameSite = 'lax' | 'strict' | 'none';
 
 // Basis für alle Cookies
-const isProd = NODE_ENV === 'production';
+const isProd = NODE_ENV === 'production' || NODE_ENV === 'staging';
 
 export const timerCookieBase = isProd
   ? `Path=/; SameSite=none; Secure; Domain=.omnixys.com`
