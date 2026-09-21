@@ -3,6 +3,13 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.2.2](https://github.com/omnixys/gateway-service/compare/v4.2.1...v4.2.2) (2026-09-21)
+
+### Analytics
+
+* **Analytics:** provision anonymous checkpoint telemetry ([](https://github.com/omnixys/gateway-service/commit/429b76d85cf35c2a45a092f0b87526d5a6f94ca1))
+* **Analytics:** configure gateway token test tenant ([](https://github.com/omnixys/gateway-service/commit/8205c9523a2ac060989e7fc7df7361725b7ad6e8))
+
 ## [4.2.1](https://github.com/omnixys/gateway-service/compare/v4.2.0...v4.2.1) (2026-09-21)
 
 ### Gateway
