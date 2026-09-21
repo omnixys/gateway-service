@@ -3,6 +3,25 @@ import test from 'node:test';
 import { BadGatewayException } from '@nestjs/common';
 import { AnalyticsIngestionController } from '../../dist/analytics/analytics-ingestion.controller.js';
 import { ContextAccessor } from '@omnixys/context-ts';
+import { forwardOtlpTraces } from '../../dist/observability/otlp-proxy.js';
+
+test('OTLP proxy forwards the parsed browser payload unchanged', async () => {
+  const payload = { resourceSpans: [{ scopeSpans: [] }] };
+  let request;
+  await forwardOtlpTraces(
+    'http://collector:4318',
+    payload,
+    'application/json',
+    async (url, init) => {
+      request = { url, init };
+      return new Response(null, { status: 202 });
+    },
+  );
+
+  assert.equal(request.url, 'http://collector:4318/v1/traces');
+  assert.equal(request.init.headers['content-type'], 'application/json');
+  assert.equal(request.init.body, JSON.stringify(payload));
+});
 
 test('analytics batch proxy preserves API-key and correlation headers', async (t) => {
   const originalFetch = globalThis.fetch;
@@ -171,17 +190,30 @@ test('public RSVP token broker resolves the tenant through invitation', async (t
   assert.equal(result.token, 'public-browser-token');
 });
 
-test('public RSVP token broker rejects browser tenant IDs without a reference', async () => {
-  await assert.rejects(
-    new AnalyticsIngestionController().issueToken(
-      {
-        origin: 'https://checkpoint.omnixys.com',
-        'x-tenant-id': '00000000-0000-4000-8000-000000000009',
-      },
-      {},
-    ),
-    (error) => error?.getResponse?.().code === 'VERIFIED_TENANT_REQUIRED',
+test('anonymous checkpoint token broker uses the server-side default tenant', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+  globalThis.fetch = async (_url, init) => {
+    assert.equal(
+      init.headers['x-tenant-id'],
+      process.env.ANALYTICS_CHECKPOINT_DEFAULT_TENANT_ID,
+    );
+    return new Response(JSON.stringify({ token: 'anonymous-browser-token' }), {
+      status: 200,
+    });
+  };
+
+  const result = await new AnalyticsIngestionController().issueToken(
+    {
+      origin: 'https://checkpoint.omnixys.com',
+      'x-tenant-id': '00000000-0000-4000-8000-000000000009',
+    },
+    {},
   );
+
+  assert.equal(result.token, 'anonymous-browser-token');
 });
 
 test('analytics token broker rejects origins outside the application registry', async () => {

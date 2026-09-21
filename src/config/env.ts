@@ -145,6 +145,11 @@ export const env = {
     'https://checkpoint.omnixys.com,http://localhost:3000',
     { required: true },
   ),
+  ANALYTICS_CHECKPOINT_DEFAULT_TENANT_ID: getEnv(
+    'ANALYTICS_CHECKPOINT_DEFAULT_TENANT_ID',
+    '',
+    { required: true },
+  ),
   ANALYTICS_WEDDING_ORIGINS: getEnv(
     'ANALYTICS_WEDDING_ORIGINS',
     'https://cgr.omnixys.com,http://localhost:3001',

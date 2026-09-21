@@ -17,6 +17,7 @@
 
 import { AppModule } from './app.module.js';
 import { corsOptions } from './config/cors.js';
+import { forwardOtlpTraces } from './observability/otlp-proxy.js';
 import { env } from './config/env.js';
 import compress from '@fastify/compress';
 import cookie from '@fastify/cookie';
@@ -223,7 +224,7 @@ async function bootstrap(): Promise<void> {
   /**
    * Proxies browser OTLP/HTTP trace exports to the OpenTelemetry collector.
    *
-   * Frontends (e.g. checkpoint) export to `/otel/v1/traces`; this route forwards
+   * Frontends export directly to this Gateway endpoint; this route forwards
    * the request to the collector's OTLP HTTP receiver (`env.OTEL_URI`). This keeps
    * the collector internal-only while still ingesting browser traces.
    */
@@ -231,17 +232,12 @@ async function bootstrap(): Promise<void> {
     '/otel/v1/traces',
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const chunks: Buffer[] = [];
-        for await (const chunk of request.raw) {
-          chunks.push(chunk as Buffer);
-        }
-        const body = Buffer.concat(chunks);
         const contentType = request.headers['content-type'];
-        const collectorResponse = await fetch(`${env.OTEL_URI}/v1/traces`, {
-          method: 'POST',
-          headers: contentType ? { 'content-type': String(contentType) } : {},
-          body,
-        });
+        const collectorResponse = await forwardOtlpTraces(
+          env.OTEL_URI,
+          request.body,
+          contentType ? String(contentType) : undefined,
+        );
         const responseBody = await collectorResponse.text();
         return reply
           .status(collectorResponse.status)

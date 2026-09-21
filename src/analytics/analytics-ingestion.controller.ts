@@ -23,6 +23,7 @@ const {
   ANALYTICS_INGESTION_URI,
   ANALYTICS_TOKEN_URI,
   ANALYTICS_CHECKPOINT_ORIGINS,
+  ANALYTICS_CHECKPOINT_DEFAULT_TENANT_ID,
   ANALYTICS_WEDDING_ORIGINS,
   NODE_ENV,
 } = env;
@@ -134,6 +135,13 @@ export class AnalyticsIngestionController {
     const context = ContextAccessor.get();
     let tenantId = context?.tenant?.verified ? context.tenant.tenantId : undefined;
     tenantId ??= await resolvePublicTenant(body?.publicReference);
+    tenantId ??= defaultTenantFor(application);
+    if (!tenantId) {
+      throw new ForbiddenException({
+        code: 'VERIFIED_TENANT_REQUIRED',
+        message: 'A verified tenant context or public RSVP reference is required',
+      });
+    }
     return proxyJson(ANALYTICS_TOKEN_URI, {
       headers: {
         'content-type': 'application/json',
@@ -223,9 +231,9 @@ function analyticsApplication(origin: string): AnalyticsApplicationConfig | unde
 
 async function resolvePublicTenant(
   reference: AnalyticsTokenRequest['publicReference'],
-): Promise<string> {
+): Promise<string | undefined> {
+  if (!reference) return undefined;
   if (
-    !reference ||
     (reference.type !== 'event' && reference.type !== 'invitation') ||
     !reference.id ||
     !isUUID(reference.id)
@@ -251,6 +259,12 @@ async function resolvePublicTenant(
     });
   }
   return tenantId;
+}
+
+function defaultTenantFor(application: AnalyticsApplicationConfig): string | undefined {
+  return application.application === 'checkpoint'
+    ? ANALYTICS_CHECKPOINT_DEFAULT_TENANT_ID
+    : undefined;
 }
 
 async function proxyJson(
