@@ -3,6 +3,16 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.2.4](https://github.com/omnixys/gateway-service/compare/v4.2.3...v4.2.4) (2026-09-22)
+
+### Other
+
+* **Other:** Merge branch 'main' of https://github.com/omnixys/gateway-service ([](https://github.com/omnixys/gateway-service/commit/0bdf435b7a5ff7985709aa69b2b9145beb02408b))
+
+### Rate-limit
+
+* **Rate-limit:** isolate browser telemetry ([](https://github.com/omnixys/gateway-service/commit/f7579aedf0d3b509c927ac382e99473eb2cc9067))
+
 ## [4.2.3](https://github.com/omnixys/gateway-service/compare/v4.2.2...v4.2.3) (2026-09-21)
 
 ### Staging
