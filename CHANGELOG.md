@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.2.3](https://github.com/omnixys/gateway-service/compare/v4.2.2...v4.2.3) (2026-09-21)
+
+### Staging
+
+* **Staging:** Update app.module.ts ([](https://github.com/omnixys/gateway-service/commit/ca4a8ca3e38b4c6d3af750d08bc46a94d24b35fa))
+
 ## [4.2.2](https://github.com/omnixys/gateway-service/compare/v4.2.1...v4.2.2) (2026-09-21)
 
 ### Analytics
