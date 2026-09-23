@@ -3,6 +3,12 @@
 All notable changes in this project will be documented in this file.
 
 
+## [4.2.5](https://github.com/omnixys/gateway-service/compare/v4.2.4...v4.2.5) (2026-09-23)
+
+### Lint
+
+* **Lint:** fix pnpm lint warning ([](https://github.com/omnixys/gateway-service/commit/cb74bf5af2ea19dcf665e5fd4e60a67948a4a396))
+
 ## [4.2.4](https://github.com/omnixys/gateway-service/compare/v4.2.3...v4.2.4) (2026-09-22)
 
 ### Other
