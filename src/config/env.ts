@@ -220,10 +220,7 @@ export const env = {
   TELEMETRY_RATE_LIMIT_WINDOW: getEnv('TELEMETRY_RATE_LIMIT_WINDOW', '60000', {
     transform: toNumber,
   }),
-  TRUSTED_PROXY_CIDRS: getEnv(
-    'TRUSTED_PROXY_CIDRS',
-    '127.0.0.1/32',
-  ),
+  TRUSTED_PROXY_CIDRS: getEnv('TRUSTED_PROXY_CIDRS', '127.0.0.1/32'),
 
   KC_CLIENT_SECRET: getEnv('KC_CLIENT_SECRET', '', { required: true }),
   KC_URL: getEnv('KC_URL', 'http://localhost:18080/auth', { required: true }),

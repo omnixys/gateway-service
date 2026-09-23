@@ -178,7 +178,9 @@ async function bootstrap(): Promise<void> {
 
     const telemetryLimiter = new TelemetryRateLimiter();
     fastify.addHook('onRequest', async (request, reply) => {
-      if (!isTelemetryRequest(request.url)) return;
+      if (!isTelemetryRequest(request.url)) {
+        return;
+      }
       const result = telemetryLimiter.hit(
         telemetryRateLimitKey({
           url: request.url,
@@ -188,7 +190,9 @@ async function bootstrap(): Promise<void> {
         env.TELEMETRY_RATE_LIMIT_REQUESTS,
         env.TELEMETRY_RATE_LIMIT_WINDOW,
       );
-      if (result.allowed) return;
+      if (result.allowed) {
+        return;
+      }
       return reply
         .status(429)
         .header('retry-after', String(result.retryAfter))
